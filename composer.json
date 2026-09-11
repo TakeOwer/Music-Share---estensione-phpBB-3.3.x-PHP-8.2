@@ -1,0 +1,32 @@
+{
+    "name": "salvocortesiano/musicshare",
+    "type": "phpbb-extension",
+    "description": "Estensione phpBB in stile Spotify: upload brani per genere, playlist personali, player con copertina, tag, waveform e barra di avanzamento.",
+    "homepage": "https://netshadows.de",
+    "version": "1.14.4",
+    "keywords": [
+        "phpbb",
+        "extension",
+        "music",
+        "audio",
+        "player"
+    ],
+    "license": "GPL-2.0-only",
+    "authors": [
+        {
+            "name": "Salvo Cortesiano",
+            "homepage": "https://netshadows.de",
+            "email": "info@netshadows.de",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": ">=7.4"
+    },
+    "extra": {
+        "display-name": "Music Share",
+        "soft-require": {
+            "phpbb/phpbb": ">=3.3.0,<4.0.0@dev"
+        }
+    }
+}

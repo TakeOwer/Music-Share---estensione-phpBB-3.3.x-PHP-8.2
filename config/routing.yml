@@ -1,0 +1,91 @@
+salvocortesiano_musicshare_browse:
+    path: /musicshare
+    defaults: { _controller: salvocortesiano.musicshare.controller.main:browse }
+
+salvocortesiano_musicshare_genre:
+    path: /musicshare/genre/{genre_id}
+    defaults: { _controller: salvocortesiano.musicshare.controller.main:genre }
+    requirements:
+        genre_id: \d+
+
+salvocortesiano_musicshare_playlist:
+    path: /musicshare/playlist/{playlist_id}
+    defaults: { _controller: salvocortesiano.musicshare.controller.main:playlist }
+    requirements:
+        playlist_id: \d+
+
+salvocortesiano_musicshare_upload:
+    path: /musicshare/upload
+    defaults: { _controller: salvocortesiano.musicshare.controller.main:upload }
+
+salvocortesiano_musicshare_stream:
+    path: /musicshare/stream/{song_id}
+    defaults: { _controller: salvocortesiano.musicshare.controller.stream:stream }
+    requirements:
+        song_id: \d+
+
+salvocortesiano_musicshare_cover:
+    path: /musicshare/cover/{song_id}
+    defaults: { _controller: salvocortesiano.musicshare.controller.stream:cover }
+    requirements:
+        song_id: \d+
+
+salvocortesiano_musicshare_search:
+    path: /musicshare/search
+    defaults: { _controller: salvocortesiano.musicshare.controller.main:search }
+
+salvocortesiano_musicshare_ajax_add_to_playlist:
+    path: /musicshare/ajax/add-to-playlist
+    defaults: { _controller: salvocortesiano.musicshare.controller.ajax:add_to_playlist }
+    methods: [POST]
+
+salvocortesiano_musicshare_ajax_playlists:
+    path: /musicshare/ajax/playlists
+    defaults: { _controller: salvocortesiano.musicshare.controller.ajax:get_playlists }
+    methods: [GET]
+
+salvocortesiano_musicshare_ajax_create_playlist:
+    path: /musicshare/ajax/create-playlist
+    defaults: { _controller: salvocortesiano.musicshare.controller.ajax:create_playlist_and_add }
+    methods: [POST]
+
+salvocortesiano_musicshare_ajax_upload:
+    path: /musicshare/ajax/upload
+    defaults: { _controller: salvocortesiano.musicshare.controller.ajax:upload }
+    methods: [POST]
+
+salvocortesiano_musicshare_delete:
+    path: /musicshare/delete/{song_id}
+    defaults: { _controller: salvocortesiano.musicshare.controller.main:delete_song }
+    requirements:
+        song_id: \d+
+
+salvocortesiano_musicshare_download:
+    path: /musicshare/download/{song_id}
+    defaults: { _controller: salvocortesiano.musicshare.controller.stream:download }
+    requirements:
+        song_id: \d+
+
+salvocortesiano_musicshare_user:
+    path: /musicshare/user/{user_id}
+    defaults: { _controller: salvocortesiano.musicshare.controller.main:user_songs }
+    requirements:
+        user_id: \d+
+
+salvocortesiano_musicshare_ajax_recent:
+    path: /musicshare/ajax/recent
+    defaults: { _controller: salvocortesiano.musicshare.controller.ajax:recent }
+    methods: [GET]
+
+salvocortesiano_musicshare_ajax_vote:
+    path: /musicshare/ajax/vote
+    defaults: { _controller: salvocortesiano.musicshare.controller.ajax:vote }
+    methods: [POST]
+
+salvocortesiano_musicshare_uploaders:
+    path: /musicshare/uploaders
+    defaults: { _controller: salvocortesiano.musicshare.controller.main:uploaders }
+
+salvocortesiano_musicshare_ajax_embed:
+    path: /musicshare/ajax/embed
+    defaults: { _controller: salvocortesiano.musicshare.controller.ajax:embed }

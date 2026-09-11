@@ -1,0 +1,58 @@
+<div id="musicshare-player" class="musicshare-player" style="display:none;">
+	<audio id="musicshare-audio" preload="metadata"></audio>
+
+	<button type="button" id="musicshare-collapse-toggle" class="musicshare-collapse-toggle" title="{L_MUSICSHARE_PLAY}">&#9650;</button>
+
+	<div class="musicshare-player-cover">
+		<img id="musicshare-player-cover-img" src="" alt="" />
+	</div>
+
+	<div class="musicshare-player-main">
+		<div class="musicshare-player-meta">
+			<div class="musicshare-marquee">
+				<span id="musicshare-player-title">&nbsp;</span>
+			</div>
+		</div>
+
+		<canvas id="musicshare-waveform" class="musicshare-waveform" height="40"></canvas>
+
+		<div class="musicshare-player-controls">
+			<button type="button" id="musicshare-prev" title="Prev">&#9198;</button>
+			<button type="button" id="musicshare-play" title="Play/Pause">&#9654;</button>
+			<button type="button" id="musicshare-stop" title="Stop">&#9632;</button>
+			<button type="button" id="musicshare-next" title="Next">&#9197;</button>
+
+			<span id="musicshare-time-current">0:00</span>
+			<input type="range" id="musicshare-seek" min="0" max="1000" value="0" step="1" />
+			<span id="musicshare-time-total">0:00</span>
+
+			<span class="musicshare-volume-wrap">
+				<label for="musicshare-volume">&#128266;</label>
+				<input type="range" id="musicshare-volume" min="0" max="100" value="80" step="1" />
+			</span>
+
+			<button type="button" id="musicshare-shuffle" class="musicshare-mode-btn" title="{L_MUSICSHARE_SHUFFLE}">&#128256;</button>
+			<button type="button" id="musicshare-repeat" class="musicshare-mode-btn" title="{L_MUSICSHARE_REPEAT}">&#128257;</button>
+			<button type="button" id="musicshare-queue-toggle" class="musicshare-queue-toggle" title="{L_MUSICSHARE_QUEUE}">&#9776;</button>
+			<button type="button" id="musicshare-menu-toggle" class="musicshare-menu-toggle" title="{L_MUSICSHARE_MENU}">&#8942;</button>
+		</div>
+	</div>
+
+	<div id="musicshare-menu" class="musicshare-menu" style="display:none;">
+		<button type="button" id="musicshare-clear-queue" class="musicshare-menu-item">{L_MUSICSHARE_CLEAR_QUEUE}</button>
+		<button type="button" id="musicshare-close" class="musicshare-menu-item musicshare-menu-danger">{L_MUSICSHARE_CLOSE_PLAYER}</button>
+	</div>
+
+	<div id="musicshare-queue-panel" class="musicshare-queue-panel" style="display:none;">
+		<h4>{L_MUSICSHARE_QUEUE}</h4>
+		<ul id="musicshare-queue-list" class="musicshare-queue-list"></ul>
+	</div>
+</div>
+
+<div id="musicshare-playlist-menu" class="musicshare-playlist-menu" style="display:none;">
+	<ul id="musicshare-playlist-menu-list" class="musicshare-playlist-menu-list"></ul>
+	<div class="musicshare-playlist-menu-new">
+		<input type="text" id="musicshare-new-playlist-name" placeholder="{L_MUSICSHARE_NEW_PLAYLIST_NAME}" />
+		<button type="button" id="musicshare-new-playlist-btn">{L_MUSICSHARE_NEW_PLAYLIST}</button>
+	</div>
+</div>

@@ -1,0 +1,38 @@
+<!-- INCLUDE ucp_header.html -->
+
+<div class="musicshare-panel">
+	<h2>{L_UCP_MUSICSHARE_PLAYLISTS}</h2>
+
+	<p><a href="{U_ADD}" class="musicshare-btn musicshare-btn-primary">{L_MUSICSHARE_NEW_PLAYLIST}</a></p>
+
+	<!-- IF playlists -->
+	<table class="musicshare-table">
+		<thead>
+			<tr>
+				<th>{L_MUSICSHARE_PLAYLIST_NAME}</th>
+				<th>{L_MUSICSHARE_PLAYLIST_PUBLIC}</th>
+				<th></th>
+				<th>{L_OPTIONS}</th>
+			</tr>
+		</thead>
+		<tbody>
+			<!-- BEGIN playlists -->
+			<tr>
+				<td>{playlists.NAME}</td>
+				<td><!-- IF playlists.IS_PUBLIC -->{L_YES}<!-- ELSE -->{L_NO}<!-- ENDIF --></td>
+				<td>{playlists.SONG_COUNT}</td>
+				<td class="musicshare-table-actions">
+					<a href="{playlists.U_MANAGE}">{L_MUSICSHARE_MANAGE_PLAYLIST}</a>
+					<a href="{playlists.U_EDIT}">{L_EDIT}</a>
+					<a href="{playlists.U_DELETE}">{L_DELETE}</a>
+				</td>
+			</tr>
+			<!-- END playlists -->
+		</tbody>
+	</table>
+	<!-- ELSE -->
+	<p>{L_MUSICSHARE_NO_PLAYLISTS}</p>
+	<!-- ENDIF -->
+</div>
+
+<!-- INCLUDE ucp_footer.html -->

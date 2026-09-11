@@ -1,0 +1,16 @@
+<link rel="stylesheet" href="{U_MUSICSHARE_ACP_CSS}" type="text/css" />
+
+<div class="musicshare-identity">
+	<p class="musicshare-shields">
+		<!-- IF MUSICSHARE_VERSION -->
+		<span class="musicshare-shield"><span class="musicshare-shield-label">{L_MUSICSHARE_SHIELD_VERSION}</span><span class="musicshare-shield-value musicshare-shield-blue">{MUSICSHARE_VERSION}</span></span>
+		<!-- ENDIF -->
+		<span class="musicshare-shield" title="<!-- IF MUSICSHARE_PHPBB_REQUIRED -->{L_MUSICSHARE_SHIELD_REQUIRES} {MUSICSHARE_PHPBB_REQUIRED}<!-- ENDIF -->">
+			<span class="musicshare-shield-label">phpBB</span><span class="musicshare-shield-value <!-- IF S_MUSICSHARE_PHPBB_OK -->musicshare-shield-green<!-- ELSE -->musicshare-shield-red<!-- ENDIF -->">{MUSICSHARE_PHPBB_VERSION}</span>
+		</span>
+		<span class="musicshare-shield" title="<!-- IF MUSICSHARE_PHP_REQUIRED -->{L_MUSICSHARE_SHIELD_REQUIRES} {MUSICSHARE_PHP_REQUIRED}<!-- ENDIF -->">
+			<span class="musicshare-shield-label">PHP</span><span class="musicshare-shield-value <!-- IF S_MUSICSHARE_PHP_OK -->musicshare-shield-green<!-- ELSE -->musicshare-shield-red<!-- ENDIF -->">{MUSICSHARE_PHP_VERSION}</span>
+		</span>
+		<span class="musicshare-shield"><span class="musicshare-shield-label">{L_MUSICSHARE_SHIELD_LICENSE}</span><span class="musicshare-shield-value musicshare-shield-grey">{MUSICSHARE_LICENSE}</span></span>
+	</p>
+</div>

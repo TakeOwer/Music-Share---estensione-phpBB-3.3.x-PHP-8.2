@@ -1,0 +1,109 @@
+<!-- INCLUDE overall_header.html -->
+
+<h1>{L_ACP_MUSICSHARE_TITLE} &raquo; {L_ACP_MUSICSHARE_MODERATE}</h1>
+
+<!-- INCLUDE musicshare_identity.html -->
+
+<div class="musicshare-acp-disclaimer">
+	<strong>{L_MUSICSHARE_DISCLAIMER_TITLE}</strong>
+	<p>{L_MUSICSHARE_DISCLAIMER_ACP}</p>
+</div>
+
+<fieldset>
+	<legend>{L_MUSICSHARE_PENDING_SECTION}</legend>
+
+	<!-- IF S_HAS_PENDING -->
+	<table class="musicshare-groups-table" cellspacing="0">
+		<thead>
+			<tr>
+				<th>{L_MUSICSHARE_SONG_TITLE}</th>
+				<th>{L_MUSICSHARE_SONG_ARTIST}</th>
+				<th>{L_MUSICSHARE_UPLOADED_BY}</th>
+				<th>{L_MUSICSHARE_UPLOAD_DATE}</th>
+				<th>{L_OPTIONS}</th>
+			</tr>
+		</thead>
+		<tbody>
+			<!-- BEGIN pending -->
+			<tr>
+				<td>{pending.TITLE}</td>
+				<td>{pending.ARTIST}</td>
+				<td>{pending.USERNAME}</td>
+				<td>{pending.UPLOAD_DATE}</td>
+				<td>
+					<a href="{pending.U_APPROVE}">{L_MUSICSHARE_APPROVE}</a> |
+					<a href="{pending.U_REJECT}">{L_MUSICSHARE_REJECT}</a>
+				</td>
+			</tr>
+			<!-- END pending -->
+		</tbody>
+	</table>
+	<!-- ELSE -->
+	<p>{L_MUSICSHARE_NO_PENDING_SONGS}</p>
+	<!-- ENDIF -->
+</fieldset>
+
+<fieldset>
+	<legend>{L_MUSICSHARE_ALL_SONGS_SECTION} ({TOTAL_SONGS})</legend>
+
+	<form method="post" action="{U_ACTION}">
+		<dl>
+			<dt><label for="q">{L_MUSICSHARE_SEARCH}:</label>
+			<br /><span class="explain">{L_MUSICSHARE_SEARCH_EXPLAIN}</span></dt>
+			<dd>
+				<input type="text" id="q" name="q" value="{SEARCH_QUERY}" size="32" class="inputbox" />
+				<input type="submit" value="{L_SUBMIT}" class="button2" />
+				<!-- IF S_SEARCH_ACTIVE -->
+				<a href="{U_RESET_SEARCH}" class="button2">{L_MUSICSHARE_SEARCH_RESET}</a>
+				<!-- ENDIF -->
+			</dd>
+		</dl>
+		<!-- IF S_SEARCH_ACTIVE -->
+		<p class="successbox" style="margin:6px 0 0;padding:7px 10px;">{L_MUSICSHARE_SEARCH_ACTIVE}</p>
+		<!-- ENDIF -->
+	</form>
+
+	<!-- IF S_HAS_SONGS -->
+	<table class="musicshare-groups-table" cellspacing="0">
+		<thead>
+			<tr>
+				<th>{L_MUSICSHARE_SONG_TITLE}</th>
+				<th>{L_MUSICSHARE_SONG_ARTIST}</th>
+				<th>{L_MUSICSHARE_UPLOADED_BY}</th>
+				<th style="width: 70px;">{L_MUSICSHARE_PLAY}</th>
+				<th style="width: 80px;">{L_MUSICSHARE_SIZE}</th>
+				<th style="width: 100px;">{L_STATUS}</th>
+				<th style="width: 190px;">{L_OPTIONS}</th>
+			</tr>
+		</thead>
+		<tbody>
+			<!-- BEGIN all_songs -->
+			<tr>
+				<td>{all_songs.TITLE}</td>
+				<td>{all_songs.ARTIST}</td>
+				<td>{all_songs.USERNAME}</td>
+				<td>{all_songs.PLAY_COUNT}</td>
+				<td>{all_songs.FILE_SIZE_MB} MB</td>
+				<td><!-- IF all_songs.APPROVED -->{L_MUSICSHARE_APPROVED}<!-- ELSE -->{L_MUSICSHARE_PENDING_APPROVAL}<!-- ENDIF --></td>
+				<td>
+					<!-- IF all_songs.APPROVED -->
+					<a href="{all_songs.U_UNAPPROVE}">{L_MUSICSHARE_UNAPPROVE}</a>
+					<!-- ELSE -->
+					<a href="{all_songs.U_APPROVE}">{L_MUSICSHARE_APPROVE}</a>
+					<!-- ENDIF -->
+					| <a href="{all_songs.U_DELETE}">{L_DELETE}</a>
+				</td>
+			</tr>
+			<!-- END all_songs -->
+		</tbody>
+	</table>
+
+	<!-- IF PAGINATION -->
+	<div class="pagination">{PAGINATION}</div>
+	<!-- ENDIF -->
+	<!-- ELSE -->
+	<p>{L_MUSICSHARE_NO_SONGS}</p>
+	<!-- ENDIF -->
+</fieldset>
+
+<!-- INCLUDE overall_footer.html -->

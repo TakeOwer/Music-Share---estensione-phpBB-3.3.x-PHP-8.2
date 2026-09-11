@@ -1,0 +1,32 @@
+<!-- IF U_MUSICSHARE_BROWSE -->
+<link rel="stylesheet" href="{MUSICSHARE_THEME_PATH}musicshare.css?v={MUSICSHARE_ASSET_VER}" type="text/css" />
+
+<!-- INCLUDE musicshare_player.html -->
+
+<script>
+	var musicshareConfig = {
+		ajaxAddToPlaylist: '{U_MUSICSHARE_AJAX_PLAYLIST}',
+		ajaxUpload: '{U_MUSICSHARE_AJAX_UPLOAD}',
+		ajaxRecent: '{U_MUSICSHARE_AJAX_RECENT}',
+		ajaxVote: '{U_MUSICSHARE_AJAX_VOTE}',
+		ajaxEmbed: '{U_MUSICSHARE_AJAX_EMBED}',
+		toastEnabled: <!-- IF S_MUSICSHARE_TOAST -->true<!-- ELSE -->false<!-- ENDIF -->,
+		toastInterval: {MUSICSHARE_TOAST_INTERVAL},
+		toastSound: <!-- IF S_MUSICSHARE_TOAST_SOUND -->true<!-- ELSE -->false<!-- ENDIF -->,
+		toastVolume: {MUSICSHARE_TOAST_VOLUME},
+		ajaxPlaylists: '{U_MUSICSHARE_AJAX_PLAYLISTS}',
+		ajaxCreatePlaylist: '{U_MUSICSHARE_AJAX_CREATE}',
+		ajaxHash: '{MUSICSHARE_AJAX_HASH}',
+		loggedIn: <!-- IF S_MUSICSHARE_LOGGED_IN -->true<!-- ELSE -->false<!-- ENDIF -->,
+		canPlaylist: <!-- IF S_MUSICSHARE_CAN_PLAYLIST -->true<!-- ELSE -->false<!-- ENDIF -->,
+		persistPlayer: <!-- IF S_MUSICSHARE_PERSIST_PLAYER -->true<!-- ELSE -->false<!-- ENDIF -->,
+		playerScope: '{MUSICSHARE_PLAYER_SCOPE}',
+		isMusicPage: <!-- IF S_MUSICSHARE_PAGE -->true<!-- ELSE -->false<!-- ENDIF -->,
+		lang: {MUSICSHARE_JS_LANG}
+	};
+</script>
+<script src="{MUSICSHARE_ASSET_PATH}musicshare.js?v={MUSICSHARE_ASSET_VER}"></script>
+<script src="{MUSICSHARE_ASSET_PATH}musicshare-embed.js?v={MUSICSHARE_ASSET_VER}"></script>
+<script src="{MUSICSHARE_ASSET_PATH}musicshare-upload.js?v={MUSICSHARE_ASSET_VER}"></script>
+<script src="{MUSICSHARE_ASSET_PATH}musicshare-toast.js?v={MUSICSHARE_ASSET_VER}"></script>
+<!-- ENDIF -->

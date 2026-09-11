@@ -1,0 +1,149 @@
+<!-- INCLUDE overall_header.html -->
+
+<a id="maincontent"></a>
+
+<h1>{L_ACP_MUSICSHARE_RECOGNITION}</h1>
+
+<!-- INCLUDE musicshare_identity.html -->
+
+<div class="musicshare-acp-disclaimer">
+	<strong>{L_MUSICSHARE_DISCLAIMER_TITLE}</strong>
+	<p>{L_MUSICSHARE_DISCLAIMER_ACP}</p>
+</div>
+
+<div class="musicshare-acp-disclaimer">
+	<strong>{L_MUSICSHARE_RECO_WARNING_TITLE}</strong>
+	<p>{L_MUSICSHARE_RECO_WARNING}</p>
+</div>
+
+<details class="musicshare-guide">
+	<summary>{L_MUSICSHARE_RECO_GUIDE_TITLE}</summary>
+
+	<div class="musicshare-guide-body">
+		<h3>AudD</h3>
+		<ol>
+			<li>{L_MUSICSHARE_GUIDE_AUDD_1}</li>
+			<li>{L_MUSICSHARE_GUIDE_AUDD_2}</li>
+			<li>{L_MUSICSHARE_GUIDE_AUDD_3}</li>
+			<li>{L_MUSICSHARE_GUIDE_AUDD_4}</li>
+		</ol>
+		<p class="musicshare-guide-links">
+			<a href="https://dashboard.audd.io/" target="_blank" rel="noopener noreferrer">dashboard.audd.io</a> &middot;
+			<a href="https://docs.audd.io/" target="_blank" rel="noopener noreferrer">docs.audd.io</a> &middot;
+			<a href="https://audd.io/pricing/" target="_blank" rel="noopener noreferrer">{L_MUSICSHARE_GUIDE_PRICING}</a>
+		</p>
+
+		<h3>ACRCloud</h3>
+		<ol>
+			<li>{L_MUSICSHARE_GUIDE_ACR_1}</li>
+			<li>{L_MUSICSHARE_GUIDE_ACR_2}</li>
+			<li>{L_MUSICSHARE_GUIDE_ACR_3}</li>
+			<li>{L_MUSICSHARE_GUIDE_ACR_4}</li>
+			<li>{L_MUSICSHARE_GUIDE_ACR_5}</li>
+		</ol>
+		<p class="musicshare-guide-links">
+			<a href="https://console.acrcloud.com/signup" target="_blank" rel="noopener noreferrer">console.acrcloud.com/signup</a> &middot;
+			<a href="https://www.acrcloud.com/music-recognition/" target="_blank" rel="noopener noreferrer">{L_MUSICSHARE_GUIDE_SERVICE_PAGE}</a>
+		</p>
+
+		<h3>{L_MUSICSHARE_GUIDE_AFTER_TITLE}</h3>
+		<ol>
+			<li>{L_MUSICSHARE_GUIDE_AFTER_1}</li>
+			<li>{L_MUSICSHARE_GUIDE_AFTER_2}</li>
+			<li>{L_MUSICSHARE_GUIDE_AFTER_3}</li>
+		</ol>
+
+		<p class="musicshare-guide-note">{L_MUSICSHARE_GUIDE_COST}</p>
+	</div>
+</details>
+
+<form id="musicshare_recognition" method="post" action="{U_ACTION}">
+
+<fieldset>
+	<legend>{L_MUSICSHARE_RECO_SERVICE}</legend>
+	<dl>
+		<dt><label for="musicshare_reco_service">{L_MUSICSHARE_RECO_SERVICE}:</label></dt>
+		<dd>
+			<select id="musicshare_reco_service" name="musicshare_reco_service">
+				<option value=""<!-- IF S_RECO_OFF --> selected="selected"<!-- ENDIF -->>{L_MUSICSHARE_RECO_OFF}</option>
+				<option value="audd"<!-- IF S_RECO_AUDD --> selected="selected"<!-- ENDIF -->>AudD</option>
+				<option value="acrcloud"<!-- IF S_RECO_ACRCLOUD --> selected="selected"<!-- ENDIF -->>ACRCloud</option>
+			</select>
+			<br /><span class="explain">{L_MUSICSHARE_RECO_SERVICE_EXPLAIN}</span>
+		</dd>
+	</dl>
+	<dl>
+		<dt><label for="musicshare_reco_seconds">{L_MUSICSHARE_RECO_SECONDS}:</label></dt>
+		<dd><input type="number" id="musicshare_reco_seconds" name="musicshare_reco_seconds" value="{MUSICSHARE_RECO_SECONDS}" min="5" max="30" class="inputbox narrow" />
+		<br /><span class="explain">{L_MUSICSHARE_RECO_SECONDS_EXPLAIN}</span></dd>
+	</dl>
+</fieldset>
+
+<fieldset>
+	<legend>AudD</legend>
+	<dl>
+		<dt><label for="musicshare_audd_token">{L_MUSICSHARE_AUDD_TOKEN}:</label></dt>
+		<dd><input type="text" id="musicshare_audd_token" name="musicshare_audd_token" value="{MUSICSHARE_AUDD_TOKEN}" size="45" class="inputbox" />
+		<br /><span class="explain">{L_MUSICSHARE_AUDD_TOKEN_EXPLAIN}</span></dd>
+	</dl>
+</fieldset>
+
+<fieldset>
+	<legend>ACRCloud</legend>
+	<dl>
+		<dt><label for="musicshare_acr_host">{L_MUSICSHARE_ACR_HOST}:</label></dt>
+		<dd><input type="text" id="musicshare_acr_host" name="musicshare_acr_host" value="{MUSICSHARE_ACR_HOST}" size="45" class="inputbox" />
+		<br /><span class="explain">{L_MUSICSHARE_ACR_HOST_EXPLAIN}</span></dd>
+	</dl>
+	<dl>
+		<dt><label for="musicshare_acr_key">{L_MUSICSHARE_ACR_KEY}:</label></dt>
+		<dd><input type="text" id="musicshare_acr_key" name="musicshare_acr_key" value="{MUSICSHARE_ACR_KEY}" size="45" class="inputbox" /></dd>
+	</dl>
+	<dl>
+		<dt><label for="musicshare_acr_secret">{L_MUSICSHARE_ACR_SECRET}:</label></dt>
+		<dd><input type="text" id="musicshare_acr_secret" name="musicshare_acr_secret" value="{MUSICSHARE_ACR_SECRET}" size="45" class="inputbox" /></dd>
+	</dl>
+</fieldset>
+
+<fieldset>
+	<legend>{L_MUSICSHARE_RECO_GROUPS}</legend>
+	<p class="explain">{L_MUSICSHARE_RECO_GROUPS_EXPLAIN}</p>
+
+	<table class="musicshare-groups-table" cellspacing="0">
+		<thead>
+			<tr>
+				<th>{L_GROUP}</th>
+				<th style="width: 140px; text-align: center;">{L_MUSICSHARE_RECO_CHECKED}</th>
+			</tr>
+		</thead>
+		<tbody>
+			<!-- BEGIN groups -->
+			<tr>
+				<td class="musicshare-group-name">
+					<!-- IF groups.GROUP_COLOUR -->
+					<span class="musicshare-group-dot" style="background-color: {groups.GROUP_COLOUR};"></span>
+					<span style="color: {groups.GROUP_COLOUR};"><!-- IF groups.S_SPECIAL --><em>{groups.GROUP_NAME}</em><!-- ELSE --><strong>{groups.GROUP_NAME}</strong><!-- ENDIF --></span>
+					<!-- ELSE -->
+					<span class="musicshare-group-dot musicshare-group-dot-none"></span>
+					<!-- IF groups.S_SPECIAL --><em>{groups.GROUP_NAME}</em><!-- ELSE -->{groups.GROUP_NAME}<!-- ENDIF -->
+					<!-- ENDIF -->
+				</td>
+				<td style="text-align: center;">
+					<input type="checkbox" name="reco_groups[]" value="{groups.GROUP_ID}"<!-- IF groups.S_SELECTED --> checked="checked"<!-- ENDIF --> />
+				</td>
+			</tr>
+			<!-- END groups -->
+		</tbody>
+	</table>
+</fieldset>
+
+<fieldset class="submit-buttons">
+	<input class="button1" type="submit" name="submit" value="{L_SUBMIT}" />
+	<input class="button2" type="submit" name="test_key" value="{L_MUSICSHARE_RECO_TEST}" />
+	{S_FORM_TOKEN}
+	<p class="explain">{L_MUSICSHARE_RECO_TEST_EXPLAIN}</p>
+</fieldset>
+
+</form>
+
+<!-- INCLUDE overall_footer.html -->

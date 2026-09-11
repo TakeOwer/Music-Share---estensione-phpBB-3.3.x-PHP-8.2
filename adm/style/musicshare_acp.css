@@ -1,0 +1,285 @@
+/* Music Share - distintivi informativi in ACP */
+
+.musicshare-identity {
+	margin: 0 0 12px 0;
+}
+
+.musicshare-shields {
+	margin: 0;
+	line-height: 2.1;
+}
+
+.musicshare-shield {
+	display: inline-block;
+	margin: 0 6px 4px 0;
+	font-size: 11px;
+	font-family: Verdana, Helvetica, Arial, sans-serif;
+	white-space: nowrap;
+	border-radius: 3px;
+	overflow: hidden;
+	vertical-align: middle;
+}
+
+.musicshare-shield-label,
+.musicshare-shield-value {
+	display: inline-block;
+	padding: 3px 7px;
+	color: #fff;
+	line-height: 1.2;
+}
+
+.musicshare-shield-label {
+	background: #555;
+}
+
+.musicshare-shield-blue	{ background: #007ec6; }
+.musicshare-shield-green	{ background: #4c1; }
+.musicshare-shield-red	{ background: #e05d44; }
+.musicshare-shield-grey	{ background: #9f9f9f; }
+
+/* Campi del titolo del riquadro, uno per lingua */
+.musicshare-lang-row {
+	display: block;
+	margin-bottom: 6px;
+}
+
+.musicshare-lang-row .musicshare-lang-name {
+	display: inline-block;
+	min-width: 110px;
+	font-weight: bold;
+	vertical-align: middle;
+}
+
+.musicshare-lang-row .inputbox {
+	width: 320px;
+	vertical-align: middle;
+}
+
+/* Tabella dei gruppi: righe distinguibili e colore di appartenenza.
+   Con una ventina di gruppi le righe senza separazione né evidenziazione
+   rendono difficile capire su quale riga si sta cliccando. */
+.musicshare-groups-table {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+.musicshare-groups-table th,
+.musicshare-groups-table td {
+	padding: 7px 10px;
+	border-bottom: 1px solid #cfcfd6;
+	vertical-align: middle;
+}
+
+.musicshare-groups-table tbody tr:nth-child(odd) {
+	background-color: #f4f4f7;
+}
+
+.musicshare-groups-table tbody tr:hover {
+	background-color: #e4eef8;
+	box-shadow: inset 3px 0 0 #1db954;
+}
+
+.musicshare-groups-table tbody tr:hover td {
+	border-bottom-color: #9fb8cf;
+}
+
+.musicshare-groups-table input[type="checkbox"] {
+	transform: scale(1.15);
+	cursor: pointer;
+}
+
+.musicshare-group-name {
+	white-space: nowrap;
+}
+
+.musicshare-group-dot {
+	display: inline-block;
+	width: 10px;
+	height: 10px;
+	margin-right: 7px;
+	border-radius: 50%;
+	border: 1px solid rgba(0, 0, 0, 0.25);
+	vertical-align: middle;
+}
+
+.musicshare-group-dot-none {
+	background: transparent;
+	border-style: dashed;
+	border-color: #b5b5bd;
+}
+
+/* Avviso sui diritti d'autore in cima alla scheda impostazioni */
+.musicshare-acp-disclaimer {
+	margin: 0 0 14px;
+	padding: 10px 12px;
+	border: 1px solid #d9a2a0;
+	border-left: 4px solid #d9534f;
+	border-radius: 4px;
+	background: #fdf3f3;
+	color: #5c2b2a;
+}
+
+.musicshare-acp-disclaimer strong {
+	display: block;
+	margin-bottom: 4px;
+	color: #b03a36;
+}
+
+.musicshare-acp-disclaimer p {
+	margin: 0;
+	font-size: 0.92em;
+	line-height: 1.55;
+}
+
+/* Guida all'ottenimento delle chiavi API */
+.musicshare-guide {
+	margin: 0 0 14px;
+	border: 1px solid #c7d0da;
+	border-radius: 4px;
+	background: #f7f9fb;
+}
+
+.musicshare-guide > summary {
+	padding: 9px 12px;
+	font-weight: bold;
+	cursor: pointer;
+	color: #105289;
+	list-style: none;
+}
+
+.musicshare-guide > summary::-webkit-details-marker {
+	display: none;
+}
+
+.musicshare-guide > summary::before {
+	content: "\25B8";
+	display: inline-block;
+	margin-right: 6px;
+	transition: transform .15s ease;
+}
+
+.musicshare-guide[open] > summary::before {
+	transform: rotate(90deg);
+}
+
+.musicshare-guide-body {
+	padding: 0 16px 12px;
+	border-top: 1px solid #dde3ea;
+}
+
+.musicshare-guide-body h3 {
+	margin: 14px 0 6px;
+	font-size: 1.05em;
+	color: #105289;
+}
+
+.musicshare-guide-body ol {
+	margin: 0 0 6px 22px;
+	padding: 0;
+	line-height: 1.65;
+}
+
+.musicshare-guide-body li {
+	margin-bottom: 3px;
+	list-style: decimal outside;
+}
+
+.musicshare-guide-links {
+	margin: 4px 0 0;
+	font-size: 0.92em;
+}
+
+.musicshare-guide-note {
+	margin: 14px 0 0;
+	padding: 9px 11px;
+	border-left: 3px solid #d9534f;
+	background: #fdf3f3;
+	font-size: 0.92em;
+	line-height: 1.55;
+}
+
+/* Scheda "Manutenzione e verifiche" */
+.musicshare-summary {
+	margin: 0 0 16px;
+	padding: 11px 14px;
+	border: 1px solid #c7d0da;
+	border-left: 4px solid #105289;
+	border-radius: 4px;
+	background: #f7f9fb;
+	line-height: 1.7;
+}
+
+.musicshare-summary-ok { border-left-color: #2e7d32; background: #f3faf3; }
+.musicshare-summary-avviso { border-left-color: #e69114; background: #fdf8f0; }
+.musicshare-summary-errore { border-left-color: #c62828; background: #fdf3f3; }
+
+.musicshare-badge {
+	display: inline-block;
+	margin-left: 8px;
+	padding: 2px 9px;
+	border-radius: 11px;
+	font-size: 11px;
+	color: #fff;
+}
+
+.musicshare-badge-ok { background: #2e7d32; }
+.musicshare-badge-avviso { background: #e69114; }
+.musicshare-badge-errore { background: #c62828; }
+
+.musicshare-check-table {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+.musicshare-check-table td {
+	padding: 8px 10px;
+	border-bottom: 1px solid #e3e6ea;
+	vertical-align: top;
+	font-size: 12px;
+}
+
+.musicshare-check-table tr:last-child td { border-bottom: none; }
+.musicshare-check-table tr:hover { background: #f4f7fa; }
+
+.musicshare-check-state { width: 22px; }
+
+.musicshare-check-label {
+	width: 300px;
+	font-weight: bold;
+}
+
+.musicshare-check-value { font-family: monospace; }
+
+.musicshare-dot {
+	display: inline-block;
+	width: 11px;
+	height: 11px;
+	border-radius: 50%;
+	margin-top: 3px;
+}
+
+.musicshare-dot-ok { background: #2e7d32; }
+.musicshare-dot-avviso { background: #e69114; }
+.musicshare-dot-errore { background: #c62828; }
+
+.musicshare-check-errore .musicshare-check-label { color: #b03a36; }
+.musicshare-check-avviso .musicshare-check-label { color: #8a5606; }
+
+.musicshare-check-fix {
+	margin-top: 6px;
+	padding: 7px 10px;
+	border-left: 3px solid #105289;
+	background: #eef4fa;
+	font-family: inherit;
+	font-size: 12px;
+	line-height: 1.55;
+	color: #24425f;
+}
+
+/* Il comando che rimuove anche le notifiche non lette va distinto:
+   e' l'unica azione irreversibile della scheda. */
+.musicshare-btn-purge {
+	border-color: #c62828 !important;
+	color: #b03a36 !important;
+	font-weight: bold;
+}

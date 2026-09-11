@@ -1,0 +1,84 @@
+<!-- INCLUDE ucp_header.html -->
+
+<div class="musicshare-panel">
+<h2>{L_UCP_MUSICSHARE_SONGS}</h2>
+
+<!-- IF S_HAS_QUOTA -->
+<div class="musicshare-quota">
+	<div class="musicshare-quota-label">
+		{L_MUSICSHARE_USED_SPACE}: <strong>{USED_SPACE_MB} MB</strong> / {QUOTA_MB} MB ({QUOTA_PERCENT}%)
+		&mdash; <a href="{U_MUSICSHARE_BROWSE}">{L_MUSICSHARE_GO_TO_BROWSE}</a>
+	</div>
+	<div class="musicshare-quota-track">
+		<div class="musicshare-quota-bar<!-- IF S_QUOTA_FULL --> musicshare-quota-warn<!-- ENDIF -->" style="width: {QUOTA_PERCENT}%"></div>
+	</div>
+</div>
+<!-- ELSE -->
+<p class="musicshare-meta">
+	{L_MUSICSHARE_USED_SPACE}: {USED_SPACE_MB} MB
+	&mdash; <a href="{U_MUSICSHARE_BROWSE}">{L_MUSICSHARE_GO_TO_BROWSE}</a>
+</p>
+<!-- ENDIF -->
+
+<!-- IF songs -->
+<p class="musicshare-meta">{L_MUSICSHARE_CLICK_TO_PLAY}</p>
+
+<ul class="musicshare-song-list">
+	<!-- BEGIN songs -->
+	<li class="musicshare-song-row"
+		data-song-id="{songs.SONG_ID}"
+		data-title="{songs.TITLE}"
+		data-artist="{songs.ARTIST}"
+		data-album="{songs.ALBUM}"
+			data-year="{songs.YEAR}"
+		data-stream-url="{songs.U_STREAM}"
+		data-cover-url="{songs.U_COVER}"
+		data-likes="{songs.LIKES}"
+		data-dislikes="{songs.DISLIKES}"
+		data-myvote="{songs.MY_VOTE}"
+		data-canvote="<!-- IF songs.S_CAN_VOTE -->1<!-- ELSE -->0<!-- ENDIF -->">
+		<span class="musicshare-cover">
+			<!-- IF songs.S_HAS_COVER -->
+			<img src="{songs.U_COVER}" alt="" />
+			<!-- ELSE -->
+			<span class="musicshare-cover-placeholder">&#9835;</span>
+			<!-- ENDIF -->
+		</span>
+		<span class="musicshare-info">
+			<span class="musicshare-title">{songs.TITLE}</span>
+			<span class="musicshare-artist">{songs.ARTIST}<!-- IF songs.ALBUM --> &mdash; {songs.ALBUM}<!-- ENDIF --><!-- IF songs.YEAR --> ({songs.YEAR})<!-- ENDIF --></span>
+			<span class="musicshare-uploader">
+				{L_MUSICSHARE_UPLOAD_DATE}: {songs.UPLOAD_DATE}<!-- IF songs.GENRES --> &middot; {L_MUSICSHARE_GENRES}: {songs.GENRES}<!-- ENDIF -->
+			<!-- IF songs.DESCRIPTION --><span class="musicshare-description">{songs.DESCRIPTION}</span><!-- ENDIF -->
+				&middot; <!-- IF songs.S_ALLOW_DOWNLOAD -->{L_MUSICSHARE_DOWNLOAD_ON}<!-- ELSE -->{L_MUSICSHARE_DOWNLOAD_OFF}<!-- ENDIF -->
+			</span>
+		</span>
+		<span class="musicshare-duration">{songs.DURATION}</span>
+		<span class="musicshare-plays" title="{songs.PLAY_COUNT_TEXT}"><i class="icon fa-headphones fa-fw" aria-hidden="true"></i> {songs.PLAY_COUNT}</span>
+		<span class="musicshare-duration">{songs.FILE_SIZE_MB} MB</span>
+		<span class="musicshare-duration">
+			<!-- IF songs.APPROVED -->
+			{L_MUSICSHARE_APPROVED}
+			<!-- ELSE -->
+			<span class="musicshare-pending" title="{L_MUSICSHARE_PENDING_EXPLAIN}">{L_MUSICSHARE_PENDING_APPROVAL}</span>
+			<!-- ENDIF -->
+		</span>
+		<span class="musicshare-row-actions">
+			<!-- IF songs.S_CAN_DOWNLOAD -->
+			<a href="{songs.U_DOWNLOAD}" class="musicshare-btn" title="{L_MUSICSHARE_DOWNLOAD}">&#8681;</a>
+			<!-- ENDIF -->
+			<!-- IF S_BBCODE_ENABLED -->
+			<button type="button" class="musicshare-btn musicshare-copy-bbcode" data-song-id="{songs.SONG_ID}" title="{L_MUSICSHARE_COPY_BBCODE}">{L_MUSICSHARE_COPY_BBCODE_SHORT}</button>
+			<!-- ENDIF -->
+			<a href="{songs.U_EDIT}" class="musicshare-btn">{L_EDIT}</a>
+			<a href="{songs.U_DELETE}" class="musicshare-btn musicshare-btn-danger">{L_DELETE}</a>
+		</span>
+	</li>
+	<!-- END songs -->
+</ul>
+<!-- ELSE -->
+<p>{L_MUSICSHARE_NO_SONGS}</p>
+<!-- ENDIF -->
+</div>
+
+<!-- INCLUDE ucp_footer.html -->

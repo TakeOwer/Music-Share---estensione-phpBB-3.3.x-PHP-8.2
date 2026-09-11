@@ -1,0 +1,16 @@
+<!-- IF S_MUSICSHARE_PROFILE -->
+<dt><i class="icon fa-music fa-fw" aria-hidden="true"></i> {L_MUSICSHARE_PROFILE_SONGS}{L_COLON}</dt>
+<dd>
+	<!-- IF S_MUSICSHARE_PROFILE_HAS_SONGS -->
+	<strong><a href="{U_MUSICSHARE_PROFILE_SONGS}">{MUSICSHARE_PROFILE_SONGS}</a></strong>
+	<!-- ELSE -->
+	{MUSICSHARE_PROFILE_SONGS}
+	<!-- ENDIF -->
+</dd>
+<!-- IF S_MUSICSHARE_PROFILE_HAS_SONGS -->
+<dt><i class="icon fa-headphones fa-fw" aria-hidden="true"></i> {L_MUSICSHARE_PROFILE_PLAYS}{L_COLON}</dt>
+<dd>{MUSICSHARE_PROFILE_PLAYS}</dd>
+<dt><i class="icon fa-clock-o fa-fw" aria-hidden="true"></i> {L_MUSICSHARE_PROFILE_DURATION}{L_COLON}</dt>
+<dd>{MUSICSHARE_PROFILE_DURATION}</dd>
+<!-- ENDIF -->
+<!-- ENDIF -->

@@ -1,0 +1,77 @@
+<!-- INCLUDE overall_header.html -->
+
+<a id="maincontent"></a>
+
+<h1>{L_ACP_MUSICSHARE_MAINTENANCE}</h1>
+
+<!-- INCLUDE musicshare_identity.html -->
+
+<div class="musicshare-acp-disclaimer">
+	<strong>{L_MUSICSHARE_DISCLAIMER_TITLE}</strong>
+	<p>{L_MUSICSHARE_DISCLAIMER_ACP}</p>
+</div>
+
+<p>{L_MS_MAINT_INTRO}</p>
+
+<div class="musicshare-summary musicshare-summary-<!-- IF S_ALL_GOOD -->ok<!-- ELSEIF MS_TOT_ERROR --> errore<!-- ELSE -->avviso<!-- ENDIF -->">
+	<strong>{L_MS_SUMMARY}:</strong>
+	<span class="musicshare-badge musicshare-badge-ok">{MS_TOT_OK} {L_MS_STATE_OK}</span>
+	<span class="musicshare-badge musicshare-badge-avviso">{MS_TOT_WARN} {L_MS_STATE_WARN}</span>
+	<span class="musicshare-badge musicshare-badge-errore">{MS_TOT_ERROR} {L_MS_STATE_ERROR}</span>
+	<!-- IF S_ALL_GOOD --><br />{L_MS_ALL_GOOD}<!-- ENDIF -->
+</div>
+
+<!-- BEGIN sections -->
+<fieldset>
+	<legend>{sections.TITLE}</legend>
+
+	<table class="musicshare-check-table" cellspacing="0">
+		<tbody>
+			<!-- BEGIN checks -->
+			<tr class="musicshare-check musicshare-check-{sections.checks.STATE}">
+				<td class="musicshare-check-state"><span class="musicshare-dot musicshare-dot-{sections.checks.STATE}"></span></td>
+				<td class="musicshare-check-label">{sections.checks.LABEL}</td>
+				<td class="musicshare-check-value">
+					{sections.checks.VALUE}
+					<!-- IF sections.checks.FIX -->
+					<div class="musicshare-check-fix"><strong>{L_MS_HOWTO}:</strong> {sections.checks.FIX}</div>
+					<!-- ENDIF -->
+				</td>
+			</tr>
+			<!-- END checks -->
+		</tbody>
+	</table>
+</fieldset>
+<!-- END sections -->
+
+<form id="musicshare_maintenance" method="post" action="{U_ACTION}">
+<fieldset>
+	<legend>{L_MS_SEC_ACTIONS}</legend>
+	<dl>
+		<dt><label>{L_MUSICSHARE_CLEANUP_NOW}:</label></dt>
+		<dd>
+			<span class="explain">{L_MS_CLEANUP_AVAILABLE}: {MS_CLEANUP_COUNT}</span>
+			<br /><input type="submit" name="clean_notifications" value="{L_MUSICSHARE_CLEANUP_NOW}" class="button2" />
+			<br /><span class="explain">{L_MUSICSHARE_CLEANUP_NOW_EXPLAIN}</span>
+		</dd>
+	</dl>
+	<dl>
+		<dt><label>{L_MS_PURGE}:</label></dt>
+		<dd>
+			<span class="explain">{L_MS_NOTIF_TOTAL_LABEL}: {MS_NOTIF_TOTAL}</span>
+			<br /><input type="submit" name="purge_notifications" value="{L_MS_PURGE}" class="button2 musicshare-btn-purge" />
+			<br /><span class="explain">{L_MS_PURGE_EXPLAIN}</span>
+		</dd>
+	</dl>
+	<dl>
+		<dt><label>{L_MS_RELOAD}:</label></dt>
+		<dd>
+			<a href="{U_ACTION}" class="button2">{L_MS_RELOAD}</a>
+			<br /><span class="explain">{L_MS_RELOAD_EXPLAIN}</span>
+		</dd>
+	</dl>
+	{S_FORM_TOKEN}
+</fieldset>
+</form>
+
+<!-- INCLUDE overall_footer.html -->

@@ -1,0 +1,46 @@
+<!-- IF S_MUSICSHARE_FEED -->
+<li class="musicshare-feed" role="region" aria-label="{MUSICSHARE_FEED_TITLE}">
+	<div class="musicshare-feed-head">
+		<span class="musicshare-feed-title"><i class="icon fa-music fa-fw" aria-hidden="true"></i> {MUSICSHARE_FEED_TITLE}</span>
+		<a class="musicshare-feed-link" href="{U_MUSICSHARE_BROWSE}">{L_MUSICSHARE_GO_TO_BROWSE}</a>
+	</div>
+
+	<ul class="musicshare-song-list musicshare-feed-list<!-- IF S_MUSICSHARE_FEED_SCROLL --> musicshare-feed-scroll<!-- ENDIF -->">
+		<!-- BEGIN musicshare_feed -->
+		<li class="musicshare-song-row"
+			data-song-id="{musicshare_feed.SONG_ID}"
+			data-title="{musicshare_feed.TITLE}"
+			data-artist="{musicshare_feed.ARTIST}"
+			data-album="{musicshare_feed.ALBUM}"
+			data-year="{musicshare_feed.YEAR}"
+			data-stream-url="{musicshare_feed.U_STREAM}"
+			data-cover-url="{musicshare_feed.U_COVER}"
+			data-likes="{musicshare_feed.LIKES}"
+			data-dislikes="{musicshare_feed.DISLIKES}"
+			data-myvote="{musicshare_feed.MY_VOTE}"
+			data-canvote="<!-- IF musicshare_feed.S_CAN_VOTE -->1<!-- ELSE -->0<!-- ENDIF -->">
+			<span class="musicshare-cover">
+				<!-- IF musicshare_feed.S_HAS_COVER -->
+				<img src="{musicshare_feed.U_COVER}" alt="" />
+				<!-- ELSE -->
+				<span class="musicshare-cover-placeholder">&#9835;</span>
+				<!-- ENDIF -->
+			</span>
+			<span class="musicshare-info">
+				<span class="musicshare-title">{musicshare_feed.TITLE}</span>
+				<span class="musicshare-artist">{musicshare_feed.ARTIST}<!-- IF musicshare_feed.ALBUM --> &mdash; {musicshare_feed.ALBUM}<!-- ENDIF --></span>
+				<span class="musicshare-uploader">{L_MUSICSHARE_UPLOADED_BY} {musicshare_feed.UPLOADER} &middot; {musicshare_feed.UPLOAD_DATE}</span>
+			<!-- IF musicshare_feed.DESCRIPTION --><span class="musicshare-description">{musicshare_feed.DESCRIPTION}</span><!-- ENDIF -->
+			</span>
+			<span class="musicshare-duration">{musicshare_feed.DURATION}</span>
+			<span class="musicshare-plays" title="{musicshare_feed.PLAY_COUNT_TEXT}"><i class="icon fa-headphones fa-fw" aria-hidden="true"></i> {musicshare_feed.PLAY_COUNT}</span>
+			<span class="musicshare-row-actions">
+				<!-- IF musicshare_feed.S_CAN_DOWNLOAD -->
+				<a href="{musicshare_feed.U_DOWNLOAD}" class="musicshare-btn" title="{L_MUSICSHARE_DOWNLOAD}">&#8681;</a>
+				<!-- ENDIF -->
+			</span>
+		</li>
+		<!-- END musicshare_feed -->
+	</ul>
+</li>
+<!-- ENDIF -->

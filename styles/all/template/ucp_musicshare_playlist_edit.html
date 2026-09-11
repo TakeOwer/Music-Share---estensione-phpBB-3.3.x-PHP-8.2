@@ -1,0 +1,32 @@
+<!-- INCLUDE ucp_header.html -->
+
+<div class="musicshare-panel">
+	<h2><!-- IF S_EDIT -->{L_EDIT}<!-- ELSE -->{L_MUSICSHARE_NEW_PLAYLIST}<!-- ENDIF --></h2>
+
+	<form id="musicshare_playlist_edit" method="post" action="{U_ACTION}">
+		<input type="hidden" name="playlist_id" value="{EDIT_PLAYLIST_ID}" />
+
+		<div class="musicshare-field">
+			<label for="playlist_name">{L_MUSICSHARE_PLAYLIST_NAME}</label>
+			<input type="text" id="playlist_name" name="playlist_name" value="{EDIT_NAME}" class="inputbox" />
+		</div>
+
+		<div class="musicshare-field">
+			<label for="playlist_desc">{L_MUSICSHARE_PLAYLIST_DESC}</label>
+			<textarea id="playlist_desc" name="playlist_desc" rows="3">{EDIT_DESC}</textarea>
+		</div>
+
+		<div class="musicshare-field">
+			<span class="musicshare-field-label">{L_MUSICSHARE_PLAYLIST_PUBLIC}</span>
+			<label class="musicshare-genre-check"><input type="radio" name="is_public" value="1"<!-- IF EDIT_PUBLIC --> checked="checked"<!-- ENDIF --> /> {L_YES}</label>
+			<label class="musicshare-genre-check"><input type="radio" name="is_public" value="0"<!-- IF not EDIT_PUBLIC --> checked="checked"<!-- ENDIF --> /> {L_NO}</label>
+		</div>
+
+		<div class="musicshare-actions">
+			<input type="submit" name="submit" value="{L_SUBMIT}" class="button1" />
+			{S_FORM_TOKEN}
+		</div>
+	</form>
+</div>
+
+<!-- INCLUDE ucp_footer.html -->

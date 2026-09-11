@@ -1,0 +1,10 @@
+Subject: Il tuo brano è stato approvato
+
+Ciao {USERNAME},
+
+il brano "{SONG_TITLE}" che hai caricato è stato approvato ed è ora visibile a tutti gli utenti del forum.
+
+Puoi vedere i tuoi brani qui:
+{U_SONGS}
+
+{EMAIL_SIG}

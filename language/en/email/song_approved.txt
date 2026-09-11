@@ -1,0 +1,10 @@
+Subject: Your song has been approved
+
+Hello {USERNAME},
+
+the song "{SONG_TITLE}" you uploaded has been approved and is now visible to all board users.
+
+You can see your songs here:
+{U_SONGS}
+
+{EMAIL_SIG}

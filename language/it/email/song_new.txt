@@ -1,0 +1,10 @@
+Subject: Nuovo brano nella sezione Musica
+
+Ciao {USERNAME},
+
+è stato caricato un nuovo brano: "{SONG_TITLE}".
+
+Puoi ascoltarlo qui:
+{U_SONGS}
+
+{EMAIL_SIG}

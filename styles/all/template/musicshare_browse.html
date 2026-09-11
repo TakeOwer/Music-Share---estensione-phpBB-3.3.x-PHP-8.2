@@ -1,0 +1,130 @@
+<!-- INCLUDE overall_header.html -->
+
+<div class="musicshare-page musicshare-panel">
+	<h2>{L_MUSICSHARE_BROWSE_TITLE}</h2>
+
+	<form class="musicshare-search-box" method="get" action="{U_MUSICSHARE_SEARCH}">
+		<input type="text" name="q" placeholder="{L_MUSICSHARE_SEARCH_PLACEHOLDER}" class="inputbox" />
+		<input type="submit" value="{L_MUSICSHARE_SEARCH}" class="button2" />
+	</form>
+
+	<!-- IF S_CAN_UPLOAD -->
+	<p><a href="{U_UPLOAD}" class="musicshare-btn musicshare-btn-primary">{L_MUSICSHARE_UPLOAD_TITLE}</a></p>
+	<!-- ENDIF -->
+
+	<!-- BEGIN categories -->
+	<details class="musicshare-category"<!-- IF categories.S_OPEN --> open<!-- ENDIF -->>
+		<summary class="musicshare-category-summary">
+			<span class="musicshare-category-name">{categories.CATEGORY_NAME}</span>
+			<span class="musicshare-category-count">{categories.SONG_COUNT}</span>
+		</summary>
+		<ul class="musicshare-genre-links">
+			<!-- BEGIN genres -->
+			<li>
+				<a class="musicshare-genre-link<!-- IF categories.genres.S_EMPTY --> musicshare-genre-empty<!-- ENDIF -->" href="{categories.genres.U_GENRE}">
+					<span class="musicshare-genre-name">{categories.genres.GENRE_NAME}</span>
+					<span class="musicshare-genre-count">{categories.genres.SONG_COUNT}</span>
+				</a>
+			</li>
+			<!-- END genres -->
+		</ul>
+	</details>
+	<!-- END categories -->
+
+	<!-- IF S_HAS_HIDDEN or S_SHOW_ALL_GENRES -->
+	<p class="musicshare-genres-toggle">
+		<a href="{U_TOGGLE_GENRES}">
+			<!-- IF S_SHOW_ALL_GENRES -->{L_MUSICSHARE_SHOW_USED_GENRES}<!-- ELSE -->{L_MUSICSHARE_SHOW_ALL_GENRES}<!-- ENDIF -->
+		</a>
+	</p>
+	<!-- ENDIF -->
+
+	<!-- IF S_HAS_RECENT_SONGS -->
+	<h3 class="musicshare-section-title">{L_MUSICSHARE_RECENT_SONGS}</h3>
+	<ul class="musicshare-song-list">
+		<!-- BEGIN recent_songs -->
+		<li class="musicshare-song-row"
+			data-song-id="{recent_songs.SONG_ID}"
+			data-title="{recent_songs.TITLE}"
+			data-artist="{recent_songs.ARTIST}"
+			data-album="{recent_songs.ALBUM}"
+			data-year="{recent_songs.YEAR}"
+			data-stream-url="{recent_songs.U_STREAM}"
+			data-cover-url="{recent_songs.U_COVER}"
+			data-likes="{recent_songs.LIKES}"
+			data-dislikes="{recent_songs.DISLIKES}"
+			data-myvote="{recent_songs.MY_VOTE}"
+			data-canvote="<!-- IF recent_songs.S_CAN_VOTE -->1<!-- ELSE -->0<!-- ENDIF -->">
+			<span class="musicshare-cover">
+				<!-- IF recent_songs.S_HAS_COVER -->
+				<img src="{recent_songs.U_COVER}" alt="" />
+				<!-- ELSE -->
+				<span class="musicshare-cover-placeholder">&#9835;</span>
+				<!-- ENDIF -->
+			</span>
+			<span class="musicshare-info">
+				<span class="musicshare-title">{recent_songs.TITLE}</span>
+				<span class="musicshare-artist">{recent_songs.ARTIST}<!-- IF recent_songs.ALBUM --> &mdash; {recent_songs.ALBUM}<!-- ENDIF --></span>
+				<!-- IF recent_songs.S_HAS_UPLOADER -->
+				<span class="musicshare-uploader">{L_MUSICSHARE_UPLOADED_BY} {recent_songs.UPLOADER} &middot; {recent_songs.UPLOAD_DATE}<!-- IF recent_songs.GENRES --> &middot; {recent_songs.GENRES}<!-- ENDIF --></span>
+				<!-- IF recent_songs.DESCRIPTION --><span class="musicshare-description">{recent_songs.DESCRIPTION}</span><!-- ENDIF -->
+				<!-- ENDIF -->
+			</span>
+			<span class="musicshare-duration">{recent_songs.DURATION}</span>
+			<span class="musicshare-plays" title="{recent_songs.PLAY_COUNT_TEXT}"><i class="icon fa-headphones fa-fw" aria-hidden="true"></i> {recent_songs.PLAY_COUNT}</span>
+			<span class="musicshare-row-actions">
+				<!-- IF recent_songs.S_CAN_DOWNLOAD -->
+				<a href="{recent_songs.U_DOWNLOAD}" class="musicshare-btn" title="{L_MUSICSHARE_DOWNLOAD}">&#8681;</a>
+				<!-- ENDIF -->
+			</span>
+		</li>
+		<!-- END recent_songs -->
+	</ul>
+	<!-- ENDIF -->
+
+	<!-- IF S_HAS_TOP_SONGS -->
+	<h3 class="musicshare-section-title">{L_MUSICSHARE_TOP_SONGS}</h3>
+	<ul class="musicshare-song-list">
+		<!-- BEGIN top_songs -->
+		<li class="musicshare-song-row"
+			data-song-id="{top_songs.SONG_ID}"
+			data-title="{top_songs.TITLE}"
+			data-artist="{top_songs.ARTIST}"
+			data-album="{top_songs.ALBUM}"
+			data-year="{top_songs.YEAR}"
+			data-stream-url="{top_songs.U_STREAM}"
+			data-cover-url="{top_songs.U_COVER}"
+			data-likes="{top_songs.LIKES}"
+			data-dislikes="{top_songs.DISLIKES}"
+			data-myvote="{top_songs.MY_VOTE}"
+			data-canvote="<!-- IF top_songs.S_CAN_VOTE -->1<!-- ELSE -->0<!-- ENDIF -->">
+			<span class="musicshare-cover">
+				<!-- IF top_songs.S_HAS_COVER -->
+				<img src="{top_songs.U_COVER}" alt="" />
+				<!-- ELSE -->
+				<span class="musicshare-cover-placeholder">&#9835;</span>
+				<!-- ENDIF -->
+			</span>
+			<span class="musicshare-info">
+				<span class="musicshare-title">{top_songs.TITLE}</span>
+				<span class="musicshare-artist">{top_songs.ARTIST}<!-- IF top_songs.ALBUM --> &mdash; {top_songs.ALBUM}<!-- ENDIF --></span>
+				<span class="musicshare-uploader">{L_MUSICSHARE_UPLOADED_BY} {top_songs.UPLOADER} &middot; {top_songs.UPLOAD_DATE}<!-- IF top_songs.GENRES --> &middot; {top_songs.GENRES}<!-- ENDIF --></span>
+				<!-- IF top_songs.DESCRIPTION --><span class="musicshare-description">{top_songs.DESCRIPTION}</span><!-- ENDIF -->
+			</span>
+			<span class="musicshare-duration">{top_songs.DURATION}</span>
+			<span class="musicshare-plays" title="{top_songs.PLAY_COUNT_TEXT}"><i class="icon fa-headphones fa-fw" aria-hidden="true"></i> {top_songs.PLAY_COUNT}</span>
+			<span class="musicshare-row-actions">
+				<!-- IF top_songs.S_CAN_DOWNLOAD -->
+				<a href="{top_songs.U_DOWNLOAD}" class="musicshare-btn" title="{L_MUSICSHARE_DOWNLOAD}">&#8681;</a>
+				<!-- ENDIF -->
+			</span>
+			<!-- IF S_MUSICSHARE_CAN_PLAYLIST -->
+			<button type="button" class="musicshare-add-playlist" data-song-id="{top_songs.SONG_ID}" title="{L_MUSICSHARE_ADD_TO_PLAYLIST}">+</button>
+			<!-- ENDIF -->
+		</li>
+		<!-- END top_songs -->
+	</ul>
+	<!-- ENDIF -->
+</div>
+
+<!-- INCLUDE overall_footer.html -->

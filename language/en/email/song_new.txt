@@ -1,0 +1,10 @@
+Subject: New song in the Music section
+
+Hello {USERNAME},
+
+a new song has been uploaded: "{SONG_TITLE}".
+
+You can listen to it here:
+{U_SONGS}
+
+{EMAIL_SIG}

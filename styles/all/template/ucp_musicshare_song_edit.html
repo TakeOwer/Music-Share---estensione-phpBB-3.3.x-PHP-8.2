@@ -1,0 +1,85 @@
+<!-- INCLUDE ucp_header.html -->
+
+<div class="musicshare-panel">
+	<h2>{L_MUSICSHARE_EDIT_SONG}</h2>
+
+	<form id="musicshare_song_edit" method="post" action="{U_ACTION}" enctype="multipart/form-data">
+		<div class="musicshare-field">
+			<label for="song_title">{L_MUSICSHARE_SONG_TITLE}</label>
+			<input type="text" id="song_title" name="song_title" value="{EDIT_TITLE}" class="inputbox" />
+			<br /><span class="explain">{L_MUSICSHARE_EDIT_FIELD_EXPLAIN}</span>
+		</div>
+
+		<div class="musicshare-field">
+			<label for="song_artist">{L_MUSICSHARE_SONG_ARTIST}</label>
+			<input type="text" id="song_artist" name="song_artist" value="{EDIT_ARTIST}" class="inputbox" />
+			<br /><span class="explain">{L_MUSICSHARE_EDIT_FIELD_EXPLAIN}</span>
+		</div>
+
+		<div class="musicshare-field">
+			<label for="song_album">{L_MUSICSHARE_SONG_ALBUM}</label>
+			<input type="text" id="song_album" name="song_album" value="{EDIT_ALBUM}" class="inputbox" />
+			<br /><span class="explain">{L_MUSICSHARE_EDIT_FIELD_EXPLAIN}</span>
+		</div>
+
+		<div class="musicshare-field">
+			<label for="song_year">{L_MUSICSHARE_SONG_YEAR}</label>
+			<input type="number" id="song_year" name="song_year" value="{EDIT_YEAR}" min="0" max="2100" class="inputbox narrow" />
+			<br /><span class="explain">{L_MUSICSHARE_EDIT_FIELD_EXPLAIN}</span>
+		</div>
+
+		<div class="musicshare-field">
+			<label for="cover_file">{L_MUSICSHARE_COVER_FILE}</label>
+			<!-- IF S_HAS_COVER -->
+			<div class="musicshare-current-cover"><img src="{U_COVER}" alt="" /></div>
+			<!-- ELSE -->
+			<p class="musicshare-meta">{L_MUSICSHARE_NO_COVER}</p>
+			<!-- ENDIF -->
+			<input type="file" id="cover_file" name="cover_file" accept="image/*" />
+			<span class="explain">{L_MUSICSHARE_COVER_EDIT_EXPLAIN}</span>
+			<!-- IF S_HAS_COVER -->
+			<label class="musicshare-genre-check"><input type="checkbox" name="remove_cover" value="1" /> {L_MUSICSHARE_REMOVE_COVER}</label>
+			<!-- ENDIF -->
+		</div>
+
+		<div class="musicshare-field">
+			<!-- IF S_DESCRIPTIONS -->
+			<label for="song_description">{L_MUSICSHARE_DESCRIPTION}</label>
+			<textarea id="song_description" name="song_description" rows="3" maxlength="{DESCRIPTION_MAX}">{EDIT_DESCRIPTION}</textarea>
+			<br /><span class="explain">{L_MUSICSHARE_DESCRIPTION_EXPLAIN}</span>
+			<!-- ENDIF -->
+		</div>
+
+		<div class="musicshare-field">
+			<span class="musicshare-field-label">{L_MUSICSHARE_ALLOW_DOWNLOAD_SONG}</span>
+			<!-- IF S_DOWNLOAD_ENABLED -->
+			<label class="musicshare-genre-check"><input type="checkbox" name="allow_download" value="1"<!-- IF S_ALLOW_DOWNLOAD --> checked="checked"<!-- ENDIF --> /> {L_MUSICSHARE_ALLOW_DOWNLOAD_SONG_YES}</label>
+			<span class="explain">{L_MUSICSHARE_ALLOW_DOWNLOAD_SONG_EXPLAIN}</span>
+			<!-- ELSE -->
+			<span class="explain">{L_MUSICSHARE_DOWNLOAD_OFF_BOARD}</span>
+			<!-- ENDIF -->
+		</div>
+
+		<div class="musicshare-field">
+			<span class="musicshare-field-label">{L_MUSICSHARE_GENRES}</span>
+			<div class="musicshare-genre-picker">
+				<!-- BEGIN genre_groups -->
+				<fieldset class="musicshare-genre-group">
+					<legend>{genre_groups.CATEGORY_NAME}</legend>
+					<!-- BEGIN genres -->
+					<label class="musicshare-genre-check"><input type="checkbox" name="genre_ids[]" value="{genre_groups.genres.GENRE_ID}"<!-- IF genre_groups.genres.S_SELECTED --> checked="checked"<!-- ENDIF --> /> {genre_groups.genres.GENRE_NAME}</label>
+					<!-- END genres -->
+				</fieldset>
+				<!-- END genre_groups -->
+			</div>
+			<span class="explain">{L_MUSICSHARE_GENRES_EXPLAIN}</span>
+		</div>
+
+		<div class="musicshare-actions">
+			<input type="submit" name="submit" value="{L_SUBMIT}" class="button1" />
+			{S_FORM_TOKEN}
+		</div>
+	</form>
+</div>
+
+<!-- INCLUDE ucp_footer.html -->

@@ -1,0 +1,186 @@
+parameters:
+    tables.musicshare_genres: '%core.table_prefix%musicshare_genres'
+    tables.musicshare_songs: '%core.table_prefix%musicshare_songs'
+    tables.musicshare_song_genre: '%core.table_prefix%musicshare_song_genre'
+    tables.musicshare_playlists: '%core.table_prefix%musicshare_playlists'
+    tables.musicshare_playlist_songs: '%core.table_prefix%musicshare_playlist_songs'
+    tables.musicshare_votes: '%core.table_prefix%musicshare_votes'
+
+services:
+    salvocortesiano.musicshare.genre_repository:
+        class: salvocortesiano\musicshare\repository\genre_repository
+        arguments:
+            - '@dbal.conn'
+            - '%tables.musicshare_genres%'
+
+    salvocortesiano.musicshare.song_repository:
+        class: salvocortesiano\musicshare\repository\song_repository
+        arguments:
+            - '@dbal.conn'
+            - '%tables.musicshare_songs%'
+            - '%tables.musicshare_song_genre%'
+            - '%tables.musicshare_genres%'
+            - '%tables.musicshare_votes%'
+
+    salvocortesiano.musicshare.playlist_repository:
+        class: salvocortesiano\musicshare\repository\playlist_repository
+        arguments:
+            - '@dbal.conn'
+            - '%tables.musicshare_playlists%'
+            - '%tables.musicshare_playlist_songs%'
+            - '%tables.musicshare_songs%'
+
+    salvocortesiano.musicshare.storage_helper:
+        class: salvocortesiano\musicshare\service\storage_helper
+        arguments:
+            - '@config'
+            - '%core.root_path%'
+
+    salvocortesiano.musicshare.metadata_extractor:
+        class: salvocortesiano\musicshare\service\metadata_extractor
+        arguments:
+            - '@salvocortesiano.musicshare.storage_helper'
+            - '%core.root_path%ext/salvocortesiano/musicshare/'
+
+    salvocortesiano.musicshare.upload_handler:
+        class: salvocortesiano\musicshare\service\upload_handler
+        arguments:
+            - '@config'
+            - '@request'
+            - '@user'
+            - '@salvocortesiano.musicshare.storage_helper'
+            - '@salvocortesiano.musicshare.metadata_extractor'
+            - '@salvocortesiano.musicshare.song_repository'
+            - '@salvocortesiano.musicshare.notifier'
+            - '@salvocortesiano.musicshare.recognizer'
+
+    salvocortesiano.musicshare.controller.main:
+        class: salvocortesiano\musicshare\controller\main
+        arguments:
+            - '@config'
+            - '@template'
+            - '@user'
+            - '@auth'
+            - '@request'
+            - '@controller.helper'
+            - '@pagination'
+            - '@salvocortesiano.musicshare.genre_repository'
+            - '@salvocortesiano.musicshare.song_repository'
+            - '@salvocortesiano.musicshare.playlist_repository'
+            - '@salvocortesiano.musicshare.upload_handler'
+            - '@salvocortesiano.musicshare.storage_helper'
+            - '%core.root_path%'
+            - '%core.php_ext%'
+
+    salvocortesiano.musicshare.controller.stream:
+        class: salvocortesiano\musicshare\controller\stream
+        arguments:
+            - '@auth'
+            - '@user'
+            - '@request'
+            - '@config'
+            - '@cache.driver'
+            - '@salvocortesiano.musicshare.song_repository'
+            - '@salvocortesiano.musicshare.storage_helper'
+
+    salvocortesiano.musicshare.controller.ajax:
+        class: salvocortesiano\musicshare\controller\ajax
+        arguments:
+            - '@auth'
+            - '@user'
+            - '@request'
+            - '@config'
+            - '@controller.helper'
+            - '@cache.driver'
+            - '@salvocortesiano.musicshare.playlist_repository'
+            - '@salvocortesiano.musicshare.song_repository'
+            - '@salvocortesiano.musicshare.upload_handler'
+
+    salvocortesiano.musicshare.listener:
+        class: salvocortesiano\musicshare\event\listener
+        arguments:
+            - '@template'
+            - '@user'
+            - '@auth'
+            - '@controller.helper'
+            - '@config'
+            - '@config_text'
+            - '@salvocortesiano.musicshare.song_repository'
+            - '@cache.driver'
+            - '%core.root_path%'
+            - '%core.php_ext%'
+        tags:
+            - { name: event.listener }
+
+    salvocortesiano.musicshare.notification.type.song_approved:
+        class: salvocortesiano\musicshare\notification\type\song_approved
+        shared: false
+        parent: notification.type.base
+        calls:
+            - [set_controller_helper, ['@controller.helper']]
+            - [set_user_loader, ['@user_loader']]
+        tags:
+            - { name: notification.type }
+
+    salvocortesiano.musicshare.notification.type.song_rejected:
+        class: salvocortesiano\musicshare\notification\type\song_rejected
+        shared: false
+        parent: notification.type.base
+        calls:
+            - [set_controller_helper, ['@controller.helper']]
+            - [set_user_loader, ['@user_loader']]
+        tags:
+            - { name: notification.type }
+
+    salvocortesiano.musicshare.notification.type.song_new:
+        class: salvocortesiano\musicshare\notification\type\song_new
+        shared: false
+        parent: notification.type.base
+        calls:
+            - [set_controller_helper, ['@controller.helper']]
+            - [set_user_loader, ['@user_loader']]
+        tags:
+            - { name: notification.type }
+
+    salvocortesiano.musicshare.notifier:
+        class: salvocortesiano\musicshare\service\notifier
+        arguments:
+            - '@config'
+            - '@user'
+            - '@notification_manager'
+            - '%core.root_path%'
+            - '%core.php_ext%'
+
+    salvocortesiano.musicshare.recognizer:
+        class: salvocortesiano\musicshare\service\recognizer
+        arguments:
+            - '@config'
+            - '@config_text'
+            - '@dbal.conn'
+
+    salvocortesiano.musicshare.notification_cleaner:
+        class: salvocortesiano\musicshare\service\notification_cleaner
+        arguments:
+            - '@dbal.conn'
+            - '@config'
+            - '%core.table_prefix%'
+
+    salvocortesiano.musicshare.cron.notification_cleanup:
+        class: salvocortesiano\musicshare\cron\notification_cleanup
+        arguments:
+            - '@config'
+            - '@salvocortesiano.musicshare.notification_cleaner'
+        tags:
+            - { name: cron.task }
+
+    salvocortesiano.musicshare.diagnostics:
+        class: salvocortesiano\musicshare\service\diagnostics
+        arguments:
+            - '@dbal.conn'
+            - '@config'
+            - '@config_text'
+            - '@auth'
+            - '@service_container'
+            - '@salvocortesiano.musicshare.storage_helper'
+            - '%core.root_path%'
+            - '%core.table_prefix%'

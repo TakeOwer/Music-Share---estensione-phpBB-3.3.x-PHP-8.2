@@ -1,0 +1,35 @@
+<!-- INCLUDE overall_header.html -->
+
+<div class="musicshare-page musicshare-panel">
+	<h2>{L_MUSICSHARE_SEARCH}</h2>
+
+	<form class="musicshare-search-box" method="get" action="{U_MUSICSHARE_SEARCH}">
+		<input type="text" name="q" value="{SEARCH_QUERY}" placeholder="{L_MUSICSHARE_SEARCH_PLACEHOLDER}" class="inputbox" />
+		<select name="genre">
+			<option value="0">{L_MUSICSHARE_ALL_GENRES}</option>
+			<!-- BEGIN filter_groups -->
+			<optgroup label="{filter_groups.CATEGORY_NAME}">
+				<!-- BEGIN genres -->
+				<option value="{filter_groups.genres.GENRE_ID}"<!-- IF filter_groups.genres.S_SELECTED --> selected="selected"<!-- ENDIF -->>{filter_groups.genres.GENRE_NAME}</option>
+				<!-- END genres -->
+			</optgroup>
+			<!-- END filter_groups -->
+		</select>
+		<input type="submit" value="{L_MUSICSHARE_SEARCH}" class="musicshare-btn musicshare-btn-primary" />
+	</form>
+
+	<!-- IF S_SEARCHED -->
+	<p class="musicshare-meta">{L_MUSICSHARE_SEARCH_RESULTS_FOR} &laquo;{SEARCH_QUERY}&raquo; ({TOTAL_SONGS})</p>
+
+	<!-- IF TOTAL_SONGS -->
+	<!-- INCLUDE musicshare_song_list.html -->
+	<!-- IF PAGINATION -->
+	<div class="pagination">{PAGINATION}</div>
+	<!-- ENDIF -->
+	<!-- ELSE -->
+	<p>{L_MUSICSHARE_NO_RESULTS}</p>
+	<!-- ENDIF -->
+	<!-- ENDIF -->
+</div>
+
+<!-- INCLUDE overall_footer.html -->

@@ -1,0 +1,78 @@
+<!-- INCLUDE overall_header.html -->
+
+<h1>{L_ACP_MUSICSHARE_TITLE} &raquo; {L_ACP_MUSICSHARE_GENRES}</h1>
+
+<!-- INCLUDE musicshare_identity.html -->
+
+<div class="musicshare-acp-disclaimer">
+	<strong>{L_MUSICSHARE_DISCLAIMER_TITLE}</strong>
+	<p>{L_MUSICSHARE_DISCLAIMER_ACP}</p>
+</div>
+
+<p>{L_MUSICSHARE_GENRES_INTRO}</p>
+
+<form id="musicshare_genres" method="post" action="{U_ACTION}">
+
+	<fieldset>
+		<legend><!-- IF S_EDIT -->{L_MUSICSHARE_EDIT_GENRE}<!-- ELSE -->{L_MUSICSHARE_ADD_GENRE}<!-- ENDIF --></legend>
+
+		<input type="hidden" name="genre_id" value="{EDIT_GENRE_ID}" />
+
+		<dl>
+			<dt><label for="genre_name">{L_MUSICSHARE_GENRE_NAME}:</label></dt>
+			<dd><input type="text" id="genre_name" name="genre_name" value="{EDIT_GENRE_NAME}" maxlength="100" class="inputbox" /></dd>
+		</dl>
+		<dl>
+			<dt><label for="genre_category">{L_MUSICSHARE_GENRE_CATEGORY}:</label></dt>
+			<dd><input type="text" id="genre_category" name="genre_category" value="{EDIT_GENRE_CATEGORY}" maxlength="100" class="inputbox" list="musicshare_category_list" />
+			<datalist id="musicshare_category_list">
+				<!-- BEGIN category_suggestions -->
+				<option value="{category_suggestions.NAME}"></option>
+				<!-- END category_suggestions -->
+			</datalist>
+			<br /><span class="explain">{L_MUSICSHARE_GENRE_CATEGORY_EXPLAIN}</span></dd>
+		</dl>
+		<dl>
+			<dt><label for="genre_order">{L_MUSICSHARE_GENRE_ORDER}:</label></dt>
+			<dd><input type="number" id="genre_order" name="genre_order" value="{EDIT_GENRE_ORDER}" class="inputbox narrow" />
+			<br /><span class="explain">{L_MUSICSHARE_GENRE_ORDER_EXPLAIN}</span></dd>
+		</dl>
+
+		<p class="submit-buttons">
+			<input type="submit" name="submit" value="{L_SUBMIT}" class="button1" />
+			<!-- IF S_EDIT --><a href="{U_ACTION}" class="button2">{L_CANCEL}</a><!-- ENDIF -->
+			{S_FORM_TOKEN}
+		</p>
+	</fieldset>
+
+</form>
+
+<!-- BEGIN categories -->
+<fieldset>
+	<legend>{categories.CATEGORY_NAME} ({categories.GENRE_COUNT})</legend>
+
+	<table class="musicshare-groups-table" cellspacing="0">
+		<thead>
+			<tr>
+				<th>{L_MUSICSHARE_GENRE_NAME}</th>
+				<th style="width: 80px;">{L_MUSICSHARE_GENRE_ORDER}</th>
+				<th style="width: 140px;">{L_OPTIONS}</th>
+			</tr>
+		</thead>
+		<tbody>
+			<!-- BEGIN genres -->
+			<tr>
+				<td>{categories.genres.GENRE_NAME}</td>
+				<td>{categories.genres.GENRE_ORDER}</td>
+				<td>
+					<a href="{categories.genres.U_EDIT}">{L_EDIT}</a> |
+					<a href="{categories.genres.U_DELETE}">{L_DELETE}</a>
+				</td>
+			</tr>
+			<!-- END genres -->
+		</tbody>
+	</table>
+</fieldset>
+<!-- END categories -->
+
+<!-- INCLUDE overall_footer.html -->

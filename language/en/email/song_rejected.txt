@@ -1,0 +1,9 @@
+Subject: Your song was not approved
+
+Hello {USERNAME},
+
+the song "{SONG_TITLE}" you uploaded was not approved and has been removed from the Music section.
+
+You may contact the board staff for further details.
+
+{EMAIL_SIG}

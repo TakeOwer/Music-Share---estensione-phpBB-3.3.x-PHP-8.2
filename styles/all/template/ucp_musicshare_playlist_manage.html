@@ -1,0 +1,39 @@
+<!-- INCLUDE ucp_header.html -->
+
+<div class="musicshare-panel">
+	<h2>{PLAYLIST_NAME}</h2>
+
+	<h3 class="musicshare-section-heading">{L_MUSICSHARE_MANAGE_PLAYLIST}</h3>
+
+	<!-- IF playlist_songs -->
+	<ul class="musicshare-manage-list">
+		<!-- BEGIN playlist_songs -->
+		<li>
+			<span class="musicshare-manage-name">{playlist_songs.TITLE} &mdash; {playlist_songs.ARTIST}</span>
+			<form method="post" action="{U_ACTION}">
+				<input type="hidden" name="remove_song" value="{playlist_songs.SONG_ID}" />
+				<input type="submit" value="{L_MUSICSHARE_REMOVE_FROM_PLAYLIST}" class="musicshare-btn musicshare-btn-danger" />
+			</form>
+		</li>
+		<!-- END playlist_songs -->
+	</ul>
+	<!-- ELSE -->
+	<p>{L_MUSICSHARE_NO_SONGS}</p>
+	<!-- ENDIF -->
+
+	<!-- IF my_songs -->
+	<h3 class="musicshare-section-heading">{L_MUSICSHARE_ADD_TO_PLAYLIST}</h3>
+	<form method="post" action="{U_ACTION}">
+		<div class="musicshare-field">
+			<select name="add_song">
+				<!-- BEGIN my_songs -->
+				<option value="{my_songs.SONG_ID}">{my_songs.TITLE} &mdash; {my_songs.ARTIST}</option>
+				<!-- END my_songs -->
+			</select>
+		</div>
+		<input type="submit" value="{L_MUSICSHARE_ADD_TO_PLAYLIST}" class="button1" />
+	</form>
+	<!-- ENDIF -->
+</div>
+
+<!-- INCLUDE ucp_footer.html -->

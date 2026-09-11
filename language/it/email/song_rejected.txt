@@ -1,0 +1,9 @@
+Subject: Il tuo brano non è stato approvato
+
+Ciao {USERNAME},
+
+il brano "{SONG_TITLE}" che hai caricato non è stato approvato ed è stato rimosso dalla sezione Musica.
+
+Per chiarimenti puoi rivolgerti allo staff del forum.
+
+{EMAIL_SIG}

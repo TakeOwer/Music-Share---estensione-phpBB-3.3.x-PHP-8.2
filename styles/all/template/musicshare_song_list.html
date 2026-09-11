@@ -1,0 +1,51 @@
+<!-- IF songs -->
+<ul class="musicshare-song-list">
+	<!-- BEGIN songs -->
+	<li class="musicshare-song-row"
+		data-song-id="{songs.SONG_ID}"
+		data-title="{songs.TITLE}"
+		data-artist="{songs.ARTIST}"
+		data-album="{songs.ALBUM}"
+			data-year="{songs.YEAR}"
+		data-stream-url="{songs.U_STREAM}"
+		data-cover-url="{songs.U_COVER}"
+		data-likes="{songs.LIKES}"
+		data-dislikes="{songs.DISLIKES}"
+		data-myvote="{songs.MY_VOTE}"
+		data-canvote="<!-- IF songs.S_CAN_VOTE -->1<!-- ELSE -->0<!-- ENDIF -->">
+		<span class="musicshare-cover">
+			<!-- IF songs.S_HAS_COVER -->
+			<img src="{songs.U_COVER}" alt="" />
+			<!-- ELSE -->
+			<span class="musicshare-cover-placeholder">&#9835;</span>
+			<!-- ENDIF -->
+		</span>
+		<span class="musicshare-info">
+			<span class="musicshare-title">{songs.TITLE}</span>
+			<span class="musicshare-artist">
+				{songs.ARTIST}<!-- IF songs.ALBUM --> &mdash; {songs.ALBUM}<!-- ENDIF --><!-- IF songs.YEAR --> ({songs.YEAR})<!-- ENDIF -->
+			</span>
+			<!-- IF songs.S_HAS_UPLOADER -->
+			<span class="musicshare-uploader">{L_MUSICSHARE_UPLOADED_BY} {songs.UPLOADER} &middot; {songs.UPLOAD_DATE}<!-- IF songs.GENRES --> &middot; {songs.GENRES}<!-- ENDIF --></span>
+			<!-- IF songs.DESCRIPTION --><span class="musicshare-description">{songs.DESCRIPTION}</span><!-- ENDIF -->
+			<!-- ENDIF -->
+		</span>
+		<span class="musicshare-duration" title="{L_MUSICSHARE_DURATION}">{songs.DURATION}</span>
+		<span class="musicshare-plays" title="{songs.PLAY_COUNT_TEXT}"><i class="icon fa-headphones fa-fw" aria-hidden="true"></i> {songs.PLAY_COUNT}</span>
+		<span class="musicshare-row-actions">
+			<!-- IF S_MUSICSHARE_CAN_PLAYLIST -->
+			<button type="button" class="musicshare-add-playlist" data-song-id="{songs.SONG_ID}" title="{L_MUSICSHARE_ADD_TO_PLAYLIST}">+</button>
+			<!-- ENDIF -->
+			<!-- IF songs.S_CAN_DOWNLOAD -->
+			<a href="{songs.U_DOWNLOAD}" class="musicshare-btn" title="{L_MUSICSHARE_DOWNLOAD}">&#8681;</a>
+			<!-- ENDIF -->
+			<!-- IF songs.S_CAN_MANAGE -->
+			<a href="{songs.U_DELETE}" class="musicshare-btn musicshare-btn-danger" title="{L_DELETE}">&#10005;</a>
+			<!-- ENDIF -->
+		</span>
+	</li>
+	<!-- END songs -->
+</ul>
+<!-- ELSE -->
+<p>{L_MUSICSHARE_NO_SONGS}</p>
+<!-- ENDIF -->

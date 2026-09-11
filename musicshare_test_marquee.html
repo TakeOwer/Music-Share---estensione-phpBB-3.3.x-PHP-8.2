@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>Music Share — prova dello scorrimento</title>
+<style>
+/* --- Copia ESATTA delle regole dell'estensione --- */
+.musicshare-player-meta { max-width: 460px; }
+
+.musicshare-marquee {
+	overflow: hidden;
+	white-space: nowrap;
+	width: 100%;
+}
+
+.musicshare-marquee > span {
+	display: inline-flex;
+	white-space: nowrap;
+	will-change: transform;
+}
+
+.musicshare-marquee-copy {
+	display: inline-block;
+	padding-right: 3rem;
+}
+
+.musicshare-marquee.musicshare-marquee-active > span {
+	animation-name: musicshare-marquee-scroll;
+	animation-timing-function: linear;
+	animation-iteration-count: infinite;
+}
+
+@keyframes musicshare-marquee-scroll {
+	from { transform: translateX(0); }
+	to   { transform: translateX(-50%); }
+}
+
+.musicshare-player:hover .musicshare-marquee.musicshare-marquee-active > span {
+	animation-play-state: paused;
+}
+
+/* --- solo per questa pagina di prova --- */
+body { font: 14px sans-serif; max-width: 900px; margin: 24px auto; padding: 0 16px; color: #222; }
+h1 { font-size: 19px; }
+.musicshare-player { background: #23232e; color: #fff; padding: 14px; border-radius: 6px; margin: 10px 0 4px; }
+.esito { padding: 10px 12px; border-radius: 4px; margin: 6px 0 20px; font-family: monospace; font-size: 13px; }
+.ok { background: #e8f5e9; color: #1b5e20; border-left: 4px solid #2e7d32; }
+.ko { background: #fdecea; color: #8e1f1f; border-left: 4px solid #c62828; }
+button { padding: 7px 13px; margin-right: 6px; cursor: pointer; }
+</style>
+</head>
+<body>
+
+<h1>Music Share — prova dello scorrimento delle informazioni</h1>
+<p>Questa pagina usa <strong>le stesse regole di stile e lo stesso codice</strong>
+dell'estensione. Se qui il testo scorre, scorre anche sul forum.</p>
+
+<p>
+	<button onclick="prova('Come Undone (Official Music Video) — Duran Duran — 1993')">Titolo lungo</button>
+	<button onclick="prova('Onde — Alex Baroni')">Titolo medio</button>
+	<button onclick="prova('Onde')">Titolo cortissimo</button>
+</p>
+
+<div class="musicshare-player">
+	<div class="musicshare-player-meta">
+		<div class="musicshare-marquee" id="wrap">
+			<span id="title"></span>
+		</div>
+	</div>
+</div>
+
+<div id="esito" class="esito"></div>
+
+<h2 style="font-size:16px;">Che cosa controllare</h2>
+<ul>
+	<li>Il testo deve scorrere <strong>da destra verso sinistra</strong>, senza fermarsi.</li>
+	<li>Alla fine del ciclo non deve esserci <strong>nessuno scatto</strong>: il testo riparte senza stacco.</li>
+	<li>Con il titolo cortissimo non deve restare <strong>spazio vuoto</strong>.</li>
+	<li>Passando il mouse sul riquadro scuro lo scorrimento si <strong>ferma</strong>.</li>
+</ul>
+
+<script>
+/* --- Copia ESATTA della funzione dell'estensione --- */
+var titleEl = document.getElementById('title');
+var marqueeWrap = document.getElementById('wrap');
+
+function updateMarquee(text) {
+	titleEl.style.removeProperty('animation');
+	titleEl.style.removeProperty('animation-duration');
+	titleEl.textContent = '';
+	marqueeWrap.classList.remove('musicshare-marquee-active');
+
+	function copia(nascosta) {
+		var c = document.createElement('span');
+		c.className = 'musicshare-marquee-copy';
+		c.textContent = text;
+		if (nascosta) { c.setAttribute('aria-hidden', 'true'); }
+		return c;
+	}
+
+	titleEl.appendChild(copia(false));
+
+	window.setTimeout(function () {
+		var larghezzaCopia = titleEl.firstChild ? titleEl.firstChild.offsetWidth : 0;
+		var larghezzaBarra = marqueeWrap.clientWidth;
+
+		if (larghezzaCopia <= 0) { return; }
+
+		var perGruppo = Math.max(1, Math.ceil(larghezzaBarra / larghezzaCopia));
+
+		for (var i = 1; i < perGruppo; i++) { titleEl.appendChild(copia(true)); }
+		for (var j = 0; j < perGruppo; j++) { titleEl.appendChild(copia(true)); }
+
+		var percorso = larghezzaCopia * perGruppo;
+		titleEl.style.animationDuration = Math.max(8, percorso / 45) + 's';
+
+		void titleEl.offsetWidth;
+
+		marqueeWrap.classList.add('musicshare-marquee-active');
+
+		verifica(larghezzaCopia, larghezzaBarra, perGruppo);
+	}, 60);
+}
+
+/* --- verifica automatica: legge lo stato reale calcolato dal browser --- */
+function verifica(copia, barra, perGruppo) {
+	var stile = window.getComputedStyle(titleEl);
+	var nome = stile.animationName;
+	var durata = stile.animationDuration;
+	var stato = stile.animationPlayState;
+
+	var attiva = (nome && nome !== 'none');
+	var box = document.getElementById('esito');
+
+	box.className = 'esito ' + (attiva ? 'ok' : 'ko');
+	box.innerHTML =
+		'animation-name: <strong>' + nome + '</strong><br>' +
+		'animation-duration: <strong>' + durata + '</strong><br>' +
+		'animation-play-state: <strong>' + stato + '</strong><br>' +
+		'larghezza copia: ' + copia + ' px &middot; larghezza barra: ' + barra + ' px &middot; copie: ' + (perGruppo * 2) + '<br><br>' +
+		(attiva
+			? 'ESITO: l\'animazione e\' attiva. Se il testo non si muove, il problema e\' altrove.'
+			: 'ESITO: animation-name vale "none", l\'animazione NON parte. E\' esattamente il difetto corretto in questa versione.');
+}
+
+prova('Come Undone (Official Music Video) — Duran Duran — 1993');
+
+function prova(t) { updateMarquee(t); }
+</script>
+
+</body>
+</html>
