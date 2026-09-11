@@ -1613,3 +1613,15 @@ ul.navlinks > li.musicshare-feed {
 	font-size: 0.8em;
 	white-space: nowrap;
 }
+
+/* Segnalazione del riconoscimento nell'elenco del Pannello Moderatore */
+.musicshare-mcp-flag {
+	display: inline-block;
+	margin-top: 3px;
+	padding: 1px 7px;
+	border-radius: 3px;
+	background: rgba(230, 145, 20, 0.14);
+	color: #8a5606;
+	font-size: 0.85em;
+	font-style: italic;
+}

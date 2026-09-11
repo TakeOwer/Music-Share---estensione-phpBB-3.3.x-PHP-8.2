@@ -1,0 +1,80 @@
+<!-- INCLUDE mcp_header.html -->
+
+<h2>{PAGE_TITLE}</h2>
+
+<form method="post" id="mcp_musicshare" action="{U_ACTION}">
+
+<div class="panel">
+	<div class="inner">
+
+		<p>{L_TOTAL_SONGS}</p>
+
+		<!-- IF not S_PENDING_MODE -->
+		<fieldset class="display-options">
+			<label for="q">{L_MUSICSHARE_SEARCH}:</label>
+			<input type="text" id="q" name="q" value="{SEARCH_QUERY}" class="inputbox autowidth" />
+			<input type="submit" value="{L_SUBMIT}" class="button2" />
+			<!-- IF S_IN_SEARCH -->
+			<a href="{U_RESET_SEARCH}" class="button2">{L_MUSICSHARE_SEARCH_RESET}</a>
+			<!-- ENDIF -->
+			<br /><span class="explain">{L_MUSICSHARE_SEARCH_EXPLAIN}</span>
+		</fieldset>
+		<!-- ENDIF -->
+
+		<!-- IF .songs -->
+		<table class="table1">
+			<thead>
+				<tr>
+					<th>{L_MUSICSHARE_SONG_TITLE}</th>
+					<th>{L_MUSICSHARE_SONG_ARTIST}</th>
+					<th>{L_MUSICSHARE_UPLOADED_BY}</th>
+					<th>{L_MUSICSHARE_UPLOAD_DATE}</th>
+					<th style="text-align:center;">{L_MUSICSHARE_STATUS}</th>
+					<th style="text-align:center;">{L_MUSICSHARE_ACTIONS}</th>
+				</tr>
+			</thead>
+			<tbody>
+				<!-- BEGIN songs -->
+				<tr>
+					<td>
+						<a href="{songs.U_SONG}">{songs.TITLE}</a>
+						<!-- IF songs.S_RECOGNIZED -->
+						<br /><span class="musicshare-mcp-flag">{L_MUSICSHARE_RECOGNIZED_FLAG}: {songs.RECOGNIZED_INFO}</span>
+						<!-- ENDIF -->
+					</td>
+					<td>{songs.ARTIST}</td>
+					<td>{songs.USERNAME}</td>
+					<td>{songs.UPLOAD_DATE}</td>
+					<td style="text-align:center;">
+						<!-- IF songs.S_APPROVED -->{L_MUSICSHARE_APPROVED}<!-- ELSE -->{L_MUSICSHARE_PENDING}<!-- ENDIF -->
+					</td>
+					<td style="text-align:center; white-space:nowrap;">
+						<!-- IF songs.S_APPROVED -->
+						<a href="{songs.U_UNAPPROVE}">{L_MUSICSHARE_UNAPPROVE}</a>
+						<!-- ELSE -->
+						<a href="{songs.U_APPROVE}">{L_MUSICSHARE_APPROVE}</a>
+						<!-- ENDIF -->
+						&middot;
+						<a href="{songs.U_DELETE}">{L_DELETE}</a>
+					</td>
+				</tr>
+				<!-- END songs -->
+			</tbody>
+		</table>
+		<!-- ELSE -->
+		<p><strong><!-- IF S_PENDING_MODE -->{L_MUSICSHARE_NO_PENDING_SONGS}<!-- ELSE -->{L_MUSICSHARE_NO_SONGS}<!-- ENDIF --></strong></p>
+		<!-- ENDIF -->
+
+		{S_FORM_TOKEN}
+	</div>
+</div>
+
+<!-- IF .pagination -->
+<div class="action-bar bottom">
+	<!-- INCLUDE pagination.html -->
+</div>
+<!-- ENDIF -->
+
+</form>
+
+<!-- INCLUDE mcp_footer.html -->
