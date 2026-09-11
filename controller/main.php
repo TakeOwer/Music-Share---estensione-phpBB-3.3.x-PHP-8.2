@@ -30,6 +30,7 @@ class main
 	protected $playlist_repository;
 	protected $upload_handler;
 	protected $storage_helper;
+	protected $genre_translator;
 	protected $root_path;
 	protected $php_ext;
 
@@ -46,6 +47,7 @@ class main
 		playlist_repository $playlist_repository,
 		upload_handler $upload_handler,
 		storage_helper $storage_helper,
+		\salvocortesiano\musicshare\service\genre_translator $genre_translator,
 		$root_path,
 		$php_ext
 	)
@@ -62,6 +64,7 @@ class main
 		$this->playlist_repository = $playlist_repository;
 		$this->upload_handler = $upload_handler;
 		$this->storage_helper = $storage_helper;
+		$this->genre_translator = $genre_translator;
 		$this->root_path = $root_path;
 		$this->php_ext = $php_ext;
 	}
@@ -114,7 +117,7 @@ class main
 			$shown_genres += count($rows);
 
 			$this->template->assign_block_vars('categories', array(
-				'CATEGORY_NAME'	=> ($category !== '') ? $category : $this->user->lang('MUSICSHARE_OTHER_GENRES'),
+				'CATEGORY_NAME'	=> $this->genre_translator->category($category),
 				'SONG_COUNT'	=> $category_songs,
 				'S_OPEN'		=> ($category_songs > 0),
 			));
@@ -187,7 +190,7 @@ class main
 		foreach ($this->genre_repository->get_all_grouped() as $category => $genres)
 		{
 			$this->template->assign_block_vars('filter_groups', array(
-				'CATEGORY_NAME'	=> ($category !== '') ? $category : $this->user->lang('MUSICSHARE_OTHER_GENRES'),
+				'CATEGORY_NAME'	=> $this->genre_translator->category($category),
 			));
 
 			foreach ($genres as $genre)
@@ -331,7 +334,7 @@ class main
 		foreach ($this->genre_repository->get_all_grouped() as $category => $genres)
 		{
 			$this->template->assign_block_vars('genre_groups', array(
-				'CATEGORY_NAME'	=> ($category !== '') ? $category : $this->user->lang('MUSICSHARE_OTHER_GENRES'),
+				'CATEGORY_NAME'	=> $this->genre_translator->category($category),
 			));
 
 			foreach ($genres as $genre)

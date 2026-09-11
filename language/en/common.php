@@ -243,4 +243,49 @@ $lang = array_merge($lang, [
 	'MUSICSHARE_COPY_BBCODE_SHORT'	=> 'Copy code',
 
 	'MUSICSHARE_LAST_SONG'			=> 'Last uploaded song',
+
+	// Default genre categories. They are database rows, editable by the
+	// administrator: these translations apply only while the name is the
+	// one inserted by the extension.
+	'MUSICSHARE_CAT_DANCE'			=> 'Dance and Electronic',
+	'MUSICSHARE_CAT_HIPHOP'			=> 'Hip-Hop and Urban',
+	'MUSICSHARE_CAT_POP'			=> 'Pop',
+	'MUSICSHARE_CAT_ROCK'			=> 'Rock',
+	'MUSICSHARE_CAT_METAL'			=> 'Metal',
+	'MUSICSHARE_CAT_TRADITIONAL'	=> 'Traditional, Folk and Italian Music',
+	'MUSICSHARE_CAT_LATIN'			=> 'Latin and Caribbean Music',
+	'MUSICSHARE_CAT_JAZZ'			=> 'Jazz and Blues',
+	'MUSICSHARE_CAT_SOUL'			=> 'Soul, Funk and Disco',
+	'MUSICSHARE_CAT_CLASSICAL'		=> 'Classical Music and Soundtracks',
+	'MUSICSHARE_CAT_FOLK'			=> 'Folk, Country and Roots',
+	'MUSICSHARE_CAT_WORLD'			=> 'World and Ethnic Music',
+
+	// Usate anche dal Pannello di Controllo Moderatore, che non
+	// carica il file di lingua dell'area amministrativa
+	'MUSICSHARE_APPROVE'	=> 'Approve',
+	'MUSICSHARE_NO_PENDING_SONGS'	=> 'No songs pending approval.',
+	'MUSICSHARE_SEARCH_EXPLAIN'	=> 'Search by title, artist, album or the name of the user who uploaded the song.',
+	'MUSICSHARE_SEARCH_RESET'	=> 'Clear search',
+	'MUSICSHARE_UNAPPROVE'	=> 'Revoke approval',
+
+	// Moderator Control Panel
+	'MCP_MUSICSHARE_TITLE'		=> 'Music Share',
+	'MCP_MUSICSHARE_PENDING'	=> 'Songs to approve',
+	'MCP_MUSICSHARE_SONGS'		=> 'All songs',
+	'MCP_MUSICSHARE_TOTAL'		=> array(
+		0	=> 'No songs to show.',
+		1	=> '%d song.',
+		2	=> '%d songs.',
+	),
+	'MCP_MUSICSHARE_CONFIRM_DELETE'	=> 'Do you want to delete the song "%s"? The file is removed from the server and the operation cannot be undone. The uploader is notified.',
+	'MUSICSHARE_ACTIONS'		=> 'Actions',
+	'MUSICSHARE_PENDING'		=> 'Pending',
+	'MUSICSHARE_STATUS'			=> 'Status',
+	'MUSICSHARE_RECOGNIZED_FLAG'	=> 'Match found',
+
+	'MUSICSHARE_SONG_APPROVED'	=> 'Song approved.',
+	'MUSICSHARE_SONG_UNAPPROVED'	=> 'Approval revoked: the song is no longer visible to users.',
+	'MUSICSHARE_SONG_REJECTED'	=> 'Song rejected and deleted.',
+	'MUSICSHARE_SONG_ALREADY_APPROVED'	=> 'This song was already approved: nothing was changed and no second notice was sent to the uploader. If you still saw it among the pending ones, the page was out of date.',
+	'MUSICSHARE_SONG_ALREADY_UNAPPROVED'	=> 'This song was already awaiting approval: nothing was changed and no second notice was sent to the uploader.',
 ]);

@@ -66,6 +66,7 @@ class main_module
 	protected function handle_genres($phpbb_container, $request, $template, $user)
 	{
 		$genre_repository = $phpbb_container->get('salvocortesiano.musicshare.genre_repository');
+		$genre_translator = $phpbb_container->get('salvocortesiano.musicshare.genre_translator');
 
 		add_form_key('musicshare_genres');
 
@@ -127,7 +128,7 @@ class main_module
 		foreach ($genre_repository->get_all_grouped() as $category => $genres)
 		{
 			$template->assign_block_vars('categories', [
-				'CATEGORY_NAME'	=> ($category !== '') ? $category : $user->lang('MUSICSHARE_NO_CATEGORY'),
+				'CATEGORY_NAME'	=> $genre_translator->category($category, 'MUSICSHARE_NO_CATEGORY'),
 				'GENRE_COUNT'	=> count($genres),
 			]);
 
@@ -167,6 +168,113 @@ class main_module
 	 * permessi ACL di phpBB (u_musicshare_upload, u_musicshare_playlist),
 	 * quindi resta tutto coerente con ACP -> Permessi.
 	 */
+	/**
+	 * Permessi dell'estensione attualmente assegnati a ciascun gruppo.
+	 *
+	 * @param \phpbb\db\driver\driver_interface $db
+	 * @param array $permissions
+	 * @return array group_id => array(opzione => valore)
+	 */
+	protected function get_group_permissions($db, array $permissions)
+	{
+		$sql = 'SELECT ao.auth_option, ag.group_id, ag.auth_setting
+			FROM ' . ACL_OPTIONS_TABLE . ' ao, ' . ACL_GROUPS_TABLE . ' ag
+			WHERE ag.auth_option_id = ao.auth_option_id
+				AND ag.forum_id = 0
+				AND ' . $db->sql_in_set('ao.auth_option', $permissions);
+		$result = $db->sql_query($sql);
+
+		$out = array();
+
+		while ($row = $db->sql_fetchrow($result))
+		{
+			$out[(int) $row['group_id']][$row['auth_option']] = (int) $row['auth_setting'];
+		}
+		$db->sql_freeresult($result);
+
+		// i permessi ereditati da un ruolo non stanno nella tabella dei
+		// gruppi: vanno letti dal ruolo assegnato
+		$sql = 'SELECT ag.group_id, ao.auth_option, ard.auth_setting
+			FROM ' . ACL_GROUPS_TABLE . ' ag, ' . ACL_ROLES_DATA_TABLE . ' ard, ' . ACL_OPTIONS_TABLE . ' ao
+			WHERE ag.auth_role_id <> 0
+				AND ag.forum_id = 0
+				AND ard.role_id = ag.auth_role_id
+				AND ao.auth_option_id = ard.auth_option_id
+				AND ' . $db->sql_in_set('ao.auth_option', $permissions);
+		$result = $db->sql_query($sql);
+
+		while ($row = $db->sql_fetchrow($result))
+		{
+			$gid = (int) $row['group_id'];
+
+			// un valore assegnato direttamente al gruppo ha la precedenza
+			if (!isset($out[$gid][$row['auth_option']]))
+			{
+				$out[$gid][$row['auth_option']] = (int) $row['auth_setting'];
+			}
+		}
+		$db->sql_freeresult($result);
+
+		return $out;
+	}
+
+	/**
+	 * Identificativo del ruolo dei permessi utente assegnato a un gruppo.
+	 *
+	 * @param \phpbb\db\driver\driver_interface $db
+	 * @param int $group_id
+	 * @return int 0 se il gruppo non usa alcun ruolo
+	 */
+	protected function get_user_role_id($db, $group_id)
+	{
+		$sql = 'SELECT ag.auth_role_id
+			FROM ' . ACL_GROUPS_TABLE . ' ag, ' . ACL_ROLES_TABLE . ' ar
+			WHERE ag.group_id = ' . (int) $group_id . '
+				AND ag.forum_id = 0
+				AND ag.auth_role_id <> 0
+				AND ar.role_id = ag.auth_role_id
+				AND ar.role_type = ' . "'u_'";
+		$result = $db->sql_query_limit($sql, 1);
+		$row = $db->sql_fetchrow($result);
+		$db->sql_freeresult($result);
+
+		return $row ? (int) $row['auth_role_id'] : 0;
+	}
+
+	/**
+	 * Nomi leggibili dei ruoli indicati.
+	 *
+	 * @param \phpbb\db\driver\driver_interface $db
+	 * @param array $role_ids
+	 * @return string
+	 */
+	protected function get_role_names($db, array $role_ids)
+	{
+		if (empty($role_ids))
+		{
+			return '';
+		}
+
+		global $user;
+
+		$sql = 'SELECT role_name FROM ' . ACL_ROLES_TABLE . '
+			WHERE ' . $db->sql_in_set('role_id', array_map('intval', $role_ids));
+		$result = $db->sql_query($sql);
+
+		$nomi = array();
+
+		while ($row = $db->sql_fetchrow($result))
+		{
+			// i ruoli predefiniti hanno il nome come chiave di lingua
+			$nomi[] = isset($user->lang[$row['role_name']])
+				? $user->lang[$row['role_name']]
+				: $row['role_name'];
+		}
+		$db->sql_freeresult($result);
+
+		return implode(', ', $nomi);
+	}
+
 	protected function handle_groups($phpbb_container, $request, $template, $user)
 	{
 		global $db, $auth, $phpbb_root_path, $phpEx;
@@ -195,43 +303,98 @@ class main_module
 			$can_upload = array_map('intval', $request->variable('can_upload', [0]));
 			$can_playlist = array_map('intval', $request->variable('can_playlist', [0]));
 
-			$sql = 'SELECT group_id FROM ' . GROUPS_TABLE;
-			$result = $db->sql_query($sql);
+			// Stato attuale, per intervenire SOLO sui gruppi cambiati.
+			//
+			// acl_set() cancella l'eventuale ruolo assegnato al gruppo per
+			// i permessi utente: scorrere tutti i gruppi a ogni
+			// salvataggio azzerava i ruoli dell'intero forum, compresi
+			// quelli dei gruppi che l'amministratore non aveva toccato.
+			$attuali = $this->get_group_permissions($db, $permissions);
 
-			while ($row = $db->sql_fetchrow($result))
+			$modificati = 0;
+			$ruoli_toccati = array();
+
+			$sql = 'SELECT group_id, group_name FROM ' . GROUPS_TABLE;
+			$result = $db->sql_query($sql);
+			$gruppi = $db->sql_fetchrowset($result);
+			$db->sql_freeresult($result);
+
+			foreach ($gruppi as $row)
 			{
 				$group_id = (int) $row['group_id'];
 
-				$auth_admin->acl_set('group', 0, $group_id, [
+				$voluto = array(
 					'u_musicshare_view'		=> in_array($group_id, $can_view, true) ? ACL_YES : ACL_NO,
 					'u_musicshare_feed'		=> in_array($group_id, $can_feed, true) ? ACL_YES : ACL_NO,
 					'u_musicshare_notify'	=> in_array($group_id, $can_notify, true) ? ACL_YES : ACL_NO,
 					'u_musicshare_upload'	=> in_array($group_id, $can_upload, true) ? ACL_YES : ACL_NO,
 					'u_musicshare_playlist'	=> in_array($group_id, $can_playlist, true) ? ACL_YES : ACL_NO,
-				]);
+				);
+
+				$cambiato = false;
+
+				foreach ($voluto as $opzione => $valore)
+				{
+					$prima = isset($attuali[$group_id][$opzione]) ? (int) $attuali[$group_id][$opzione] : ACL_NO;
+
+					if ($prima !== (int) $valore)
+					{
+						$cambiato = true;
+						break;
+					}
+				}
+
+				if (!$cambiato)
+				{
+					continue;
+				}
+
+				$modificati++;
+
+				// Se il gruppo usa un ruolo per i permessi utente, la
+				// modifica va applicata AL RUOLO: e' quanto fa phpBB
+				// stesso nelle proprie migrazioni, ed e' l'unico modo di
+				// non distruggere l'assegnazione del ruolo.
+				$role_id = $this->get_user_role_id($db, $group_id);
+
+				if ($role_id)
+				{
+					$auth_admin->acl_set_role($role_id, $voluto);
+					$ruoli_toccati[$role_id] = true;
+				}
+				else
+				{
+					$auth_admin->acl_set('group', 0, $group_id, $voluto);
+				}
 			}
-			$db->sql_freeresult($result);
 
 			$auth->acl_clear_prefetch();
 			$phpbb_container->get('cache.driver')->purge();
 
-			trigger_error($user->lang('MUSICSHARE_GROUPS_UPDATED') . adm_back_link($this->u_action));
+			$messaggio = $user->lang('MUSICSHARE_GROUPS_UPDATED');
+
+			if ($modificati === 0)
+			{
+				$messaggio = $user->lang('MUSICSHARE_GROUPS_UNCHANGED');
+			}
+			else if (!empty($ruoli_toccati))
+			{
+				// va detto: un ruolo e' condiviso, la modifica vale per
+				// tutti i gruppi che lo usano
+				$messaggio .= '<br /><br />' . $user->lang(
+					'MUSICSHARE_GROUPS_ROLES_TOUCHED',
+					$this->get_role_names($db, array_keys($ruoli_toccati))
+				);
+			}
+
+			trigger_error($messaggio . adm_back_link($this->u_action));
 		}
 
-		// Impostazioni attuali dei permessi per ciascun gruppo
-		$sql = 'SELECT ao.auth_option, ag.group_id, ag.auth_setting
-			FROM ' . ACL_OPTIONS_TABLE . ' ao, ' . ACL_GROUPS_TABLE . ' ag
-			WHERE ag.auth_option_id = ao.auth_option_id
-				AND ag.forum_id = 0
-				AND ' . $db->sql_in_set('ao.auth_option', $permissions);
-		$result = $db->sql_query($sql);
-
-		$current = [];
-		while ($row = $db->sql_fetchrow($result))
-		{
-			$current[(int) $row['group_id']][$row['auth_option']] = (int) $row['auth_setting'];
-		}
-		$db->sql_freeresult($result);
+		// Impostazioni attuali, ruoli compresi: un gruppo che eredita il
+		// permesso da un ruolo deve risultare spuntato, altrimenti la
+		// tabella mostrerebbe caselle vuote e il primo salvataggio
+		// toglierebbe permessi che l'amministratore vedeva concessi.
+		$current = $this->get_group_permissions($db, $permissions);
 
 		$sql = 'SELECT group_id, group_name, group_type, group_colour FROM ' . GROUPS_TABLE . '
 			ORDER BY group_type DESC, group_name ASC';
@@ -275,26 +438,46 @@ class main_module
 		$action = $request->variable('action', '');
 		$song_id = $request->variable('song_id', 0);
 
+		// Indirizzo di ritorno con un parametro variabile: senza, il
+		// browser puo' servire dalla cache la pagina precedente, in cui
+		// il brano appena approvato compare ancora fra quelli in attesa.
+		$ritorno = $this->u_action . '&amp;t=' . time();
+
 		if ($action === 'approve' && $song_id)
 		{
 			$song = $song_repository->get_song($song_id);
-			$song_repository->approve_song($song_id);
 
-			if ($song)
+			if (!$song)
 			{
-				$notifier = $phpbb_container->get('salvocortesiano.musicshare.notifier');
-
-				// all'autore: il suo brano è stato approvato
-				$notifier->song_approved($song);
-
-				// agli altri utenti: il brano è ora visibile. Con
-				// l'approvazione obbligatoria questa notifica non poteva
-				// partire al caricamento, perché il brano non era ancora
-				// visibile a nessuno.
-				$notifier->song_new($song);
+				trigger_error($user->lang('MUSICSHARE_SONG_NOT_FOUND') . adm_back_link($ritorno), E_USER_WARNING);
 			}
 
-			trigger_error($user->lang('MUSICSHARE_SONG_APPROVED') . adm_back_link($this->u_action));
+			// Se il brano risulta gia' approvato non si rifa' nulla.
+			//
+			// Senza questo controllo un secondo clic sullo stesso
+			// collegamento - per esempio tornando a una pagina rimasta
+			// in cache nel browser, dove il brano compare ancora fra
+			// quelli in attesa - inviava all'autore un secondo messaggio
+			// privato identico al primo.
+			if (!empty($song['song_approved']))
+			{
+				trigger_error($user->lang('MUSICSHARE_SONG_ALREADY_APPROVED') . adm_back_link($ritorno));
+			}
+
+			$song_repository->approve_song($song_id);
+
+			$notifier = $phpbb_container->get('salvocortesiano.musicshare.notifier');
+
+			// all'autore: il suo brano è stato approvato
+			$notifier->song_approved($song);
+
+			// agli altri utenti: il brano è ora visibile. Con
+			// l'approvazione obbligatoria questa notifica non poteva
+			// partire al caricamento, perché il brano non era ancora
+			// visibile a nessuno.
+			$notifier->song_new($song);
+
+			trigger_error($user->lang('MUSICSHARE_SONG_APPROVED') . adm_back_link($ritorno));
 		}
 
 		if ($action === 'reject' && $song_id)
@@ -316,7 +499,7 @@ class main_module
 					$song_repository->delete_song($song_id);
 				}
 
-				trigger_error($user->lang('MUSICSHARE_SONG_REJECTED') . adm_back_link($this->u_action));
+				trigger_error($user->lang('MUSICSHARE_SONG_REJECTED') . adm_back_link($ritorno));
 			}
 			else
 			{
@@ -332,17 +515,58 @@ class main_module
 		if ($action === 'unapprove' && $song_id)
 		{
 			$song = $song_repository->get_song($song_id);
-			$song_repository->set_approved($song_id, false);
 
-			if ($song)
+			if (!$song)
 			{
-				$phpbb_container->get('salvocortesiano.musicshare.notifier')->song_rejected($song);
+				trigger_error($user->lang('MUSICSHARE_SONG_NOT_FOUND') . adm_back_link($ritorno), E_USER_WARNING);
 			}
 
-			trigger_error($user->lang('MUSICSHARE_SONG_UNAPPROVED') . adm_back_link($this->u_action));
+			// come per l'approvazione: un secondo clic non deve mandare
+			// all'autore un altro messaggio identico
+			if (empty($song['song_approved']))
+			{
+				trigger_error($user->lang('MUSICSHARE_SONG_ALREADY_UNAPPROVED') . adm_back_link($ritorno));
+			}
+
+			$song_repository->set_approved($song_id, false);
+			$phpbb_container->get('salvocortesiano.musicshare.notifier')->song_rejected($song);
+
+			trigger_error($user->lang('MUSICSHARE_SONG_UNAPPROVED') . adm_back_link($ritorno));
 		}
 
-		$pending = $song_repository->get_pending_songs();
+		// Brani in attesa: 50 per pagina, con paginazione propria.
+		//
+		// Il parametro si chiama "pstart" e non "start" perche' nella
+		// stessa schermata c'e' anche l'elenco completo, che usa "start":
+		// con lo stesso nome, sfogliare un elenco sposterebbe anche
+		// l'altro.
+		$pending_limit = 50;
+		$pending_start = $request->variable('pstart', 0);
+		$pending_total = $song_repository->count_pending_songs();
+
+		// se si arriva a una pagina che non esiste piu' (per esempio dopo
+		// aver approvato gli ultimi brani) si torna alla prima
+		if ($pending_start >= $pending_total)
+		{
+			$pending_start = max(0, $pending_total - $pending_limit);
+			$pending_start = $pending_start - ($pending_start % $pending_limit);
+		}
+
+		$pending = $song_repository->get_pending_songs($pending_start, $pending_limit);
+
+		$phpbb_container->get('pagination')->generate_template_pagination(
+			$this->u_action,
+			'pending_pagination',
+			'pstart',
+			$pending_total,
+			$pending_limit,
+			$pending_start
+		);
+
+		$template->assign_vars(array(
+			'PENDING_TOTAL'		=> $pending_total,
+			'S_PENDING_PAGED'	=> ($pending_total > $pending_limit),
+		));
 
 		foreach ($pending as $song)
 		{

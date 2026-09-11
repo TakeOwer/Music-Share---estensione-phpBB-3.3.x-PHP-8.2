@@ -53,6 +53,7 @@ class main_module
 		$song_repository = $phpbb_container->get('salvocortesiano.musicshare.song_repository');
 		$storage_helper = $phpbb_container->get('salvocortesiano.musicshare.storage_helper');
 		$genre_repository = $phpbb_container->get('salvocortesiano.musicshare.genre_repository');
+		$genre_translator = $phpbb_container->get('salvocortesiano.musicshare.genre_translator');
 		$controller_helper = $phpbb_container->get('controller.helper');
 		$config = $phpbb_container->get('config');
 
@@ -155,7 +156,7 @@ class main_module
 			foreach ($genre_repository->get_all_grouped() as $category => $genres)
 			{
 				$template->assign_block_vars('genre_groups', array(
-					'CATEGORY_NAME'	=> ($category !== '') ? $category : $user->lang('MUSICSHARE_OTHER_GENRES'),
+					'CATEGORY_NAME'	=> $genre_translator->category($category, 'MUSICSHARE_OTHER_GENRES'),
 				));
 
 				foreach ($genres as $genre)
@@ -271,6 +272,7 @@ class main_module
 	{
 		$upload_handler = $phpbb_container->get('salvocortesiano.musicshare.upload_handler');
 		$genre_repository = $phpbb_container->get('salvocortesiano.musicshare.genre_repository');
+		$genre_translator = $phpbb_container->get('salvocortesiano.musicshare.genre_translator');
 		$storage_helper = $phpbb_container->get('salvocortesiano.musicshare.storage_helper');
 
 		add_form_key('musicshare_upload');
@@ -313,7 +315,7 @@ class main_module
 		foreach ($genre_repository->get_all_grouped() as $category => $genres)
 		{
 			$template->assign_block_vars('genre_groups', array(
-				'CATEGORY_NAME'	=> ($category !== '') ? $category : $user->lang('MUSICSHARE_OTHER_GENRES'),
+				'CATEGORY_NAME'	=> $genre_translator->category($category, 'MUSICSHARE_OTHER_GENRES'),
 			));
 
 			foreach ($genres as $genre)

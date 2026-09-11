@@ -312,4 +312,13 @@ $lang = array_merge($lang, [
 	'MS_NOTIF_TOTAL_LABEL'	=> 'Extension notifications in total',
 
 	'MS_FIX_NOTIF_ROWS_UNREAD'	=> 'There are %1$d notifications, nearly all still unread: cleaning only read notifications would remove none. They are the result of sending to too many recipients. First restrict the "Receives notifications of new songs" permission in the Authorised groups tab, then use "Delete all notifications" below to start over.',
+
+	'MUSICSHARE_GROUPS_UNCHANGED'		=> 'Nothing to save: the permissions were already as shown.',
+	'MUSICSHARE_GROUPS_ROLES_TITLE'		=> 'How these permissions are saved',
+	'MUSICSHARE_GROUPS_ROLES_NOTE'		=> 'Only the groups you actually change are modified: the others are left untouched. If a group uses a role for user permissions (for example "Standard registered users"), the change is applied to the role, so the assignment is not lost. Keep in mind that a role can be shared by several groups: in that case the change applies to all of them. After saving you are told which roles were modified.',
+	'MUSICSHARE_GROUPS_ROLES_TOUCHED'	=> 'Modified roles: %s. The change applies to every group using these roles.',
+
+	'MUSICSHARE_SONG_NOT_FOUND'			=> 'Song not found: it may have been deleted in the meantime.',
+	'MUSICSHARE_SONG_ALREADY_APPROVED'	=> 'This song was already approved: nothing was changed and no second notice was sent to the uploader. If you still saw it among the pending ones, the page was out of date.',
+	'MUSICSHARE_SONG_ALREADY_UNAPPROVED'	=> 'This song was already awaiting approval: nothing was changed and no second notice was sent to the uploader.',
 ]);

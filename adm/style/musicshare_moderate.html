@@ -10,7 +10,7 @@
 </div>
 
 <fieldset>
-	<legend>{L_MUSICSHARE_PENDING_SECTION}</legend>
+	<legend>{L_MUSICSHARE_PENDING_SECTION} ({PENDING_TOTAL})</legend>
 
 	<!-- IF S_HAS_PENDING -->
 	<table class="musicshare-groups-table" cellspacing="0">
@@ -38,6 +38,21 @@
 			<!-- END pending -->
 		</tbody>
 	</table>
+
+	<!-- IF .pending_pagination -->
+	<div class="pagination">
+		<ul>
+		<!-- BEGIN pending_pagination -->
+			<!-- IF pending_pagination.S_IS_PREV --><li><a href="{pending_pagination.PAGE_URL}">{L_PREVIOUS}</a></li>
+			<!-- ELSEIF pending_pagination.S_IS_CURRENT --><li class="active"><span>{pending_pagination.PAGE_NUMBER}</span></li>
+			<!-- ELSEIF pending_pagination.S_IS_ELLIPSIS --><li class="ellipsis"><span>{L_ELLIPSIS}</span></li>
+			<!-- ELSEIF pending_pagination.S_IS_NEXT --><li><a href="{pending_pagination.PAGE_URL}">{L_NEXT}</a></li>
+			<!-- ELSE --><li><a href="{pending_pagination.PAGE_URL}">{pending_pagination.PAGE_NUMBER}</a></li>
+			<!-- ENDIF -->
+		<!-- END pending_pagination -->
+		</ul>
+	</div>
+	<!-- ENDIF -->
 	<!-- ELSE -->
 	<p>{L_MUSICSHARE_NO_PENDING_SONGS}</p>
 	<!-- ENDIF -->
@@ -99,7 +114,11 @@
 	</table>
 
 	<!-- IF PAGINATION -->
-	<div class="pagination">{PAGINATION}</div>
+	<!-- IF .pagination -->
+	<div class="pagination">
+		<!-- INCLUDE pagination.html -->
+	</div>
+	<!-- ENDIF -->
 	<!-- ENDIF -->
 	<!-- ELSE -->
 	<p>{L_MUSICSHARE_NO_SONGS}</p>

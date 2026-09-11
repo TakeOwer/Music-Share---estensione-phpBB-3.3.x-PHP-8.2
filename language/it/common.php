@@ -243,4 +243,49 @@ $lang = array_merge($lang, [
 	'MUSICSHARE_COPY_BBCODE_SHORT'	=> 'Copia codice',
 
 	'MUSICSHARE_LAST_SONG'			=> 'Ultimo brano caricato',
+
+	// Categorie di genere predefinite. Sono righe del database, quindi
+	// modificabili dall'amministratore: queste traduzioni valgono solo
+	// finche' il nome resta quello inserito dall'estensione.
+	'MUSICSHARE_CAT_DANCE'			=> 'Dance ed Elettronica',
+	'MUSICSHARE_CAT_HIPHOP'			=> 'Hip-Hop e Urban',
+	'MUSICSHARE_CAT_POP'			=> 'Pop',
+	'MUSICSHARE_CAT_ROCK'			=> 'Rock',
+	'MUSICSHARE_CAT_METAL'			=> 'Metal',
+	'MUSICSHARE_CAT_TRADITIONAL'	=> 'Popolare, Tradizionale e Musica Italiana',
+	'MUSICSHARE_CAT_LATIN'			=> 'Musica Latina e Caraibica',
+	'MUSICSHARE_CAT_JAZZ'			=> 'Jazz e Blues',
+	'MUSICSHARE_CAT_SOUL'			=> 'Soul, Funk e Disco',
+	'MUSICSHARE_CAT_CLASSICAL'		=> 'Musica Classica e Colonne Sonore',
+	'MUSICSHARE_CAT_FOLK'			=> 'Folk, Country e Radici',
+	'MUSICSHARE_CAT_WORLD'			=> 'Musica Globale ed Etnica',
+
+	// Usate anche dal Pannello di Controllo Moderatore, che non
+	// carica il file di lingua dell'area amministrativa
+	'MUSICSHARE_APPROVE'	=> 'Approva',
+	'MUSICSHARE_NO_PENDING_SONGS'	=> 'Nessun brano in attesa di approvazione.',
+	'MUSICSHARE_SEARCH_EXPLAIN'	=> 'Cerca per titolo, artista, album o nome dell\'utente che ha caricato il brano.',
+	'MUSICSHARE_SEARCH_RESET'	=> 'Azzera ricerca',
+	'MUSICSHARE_UNAPPROVE'	=> 'Revoca approvazione',
+
+	// Pannello di Controllo Moderatore
+	'MCP_MUSICSHARE_TITLE'		=> 'Music Share',
+	'MCP_MUSICSHARE_PENDING'	=> 'Brani da approvare',
+	'MCP_MUSICSHARE_SONGS'		=> 'Tutti i brani',
+	'MCP_MUSICSHARE_TOTAL'		=> array(
+		0	=> 'Nessun brano da mostrare.',
+		1	=> '%d brano.',
+		2	=> '%d brani.',
+	),
+	'MCP_MUSICSHARE_CONFIRM_DELETE'	=> 'Vuoi eliminare il brano "%s"? Il file viene rimosso dal server e l\'operazione non puo\' essere annullata. All\'autore viene inviato un avviso.',
+	'MUSICSHARE_ACTIONS'		=> 'Azioni',
+	'MUSICSHARE_PENDING'		=> 'In attesa',
+	'MUSICSHARE_STATUS'			=> 'Stato',
+	'MUSICSHARE_RECOGNIZED_FLAG'	=> 'Corrispondenza trovata',
+
+	'MUSICSHARE_SONG_APPROVED'	=> 'Brano approvato.',
+	'MUSICSHARE_SONG_UNAPPROVED'	=> 'Approvazione revocata: il brano non e\' piu\' visibile agli utenti.',
+	'MUSICSHARE_SONG_REJECTED'	=> 'Brano rifiutato ed eliminato.',
+	'MUSICSHARE_SONG_ALREADY_APPROVED'	=> 'Questo brano risultava gia\' approvato: non e\' stato modificato e all\'autore non e\' stato inviato un secondo avviso. Se lo vedevi ancora fra quelli in attesa, la pagina non era aggiornata.',
+	'MUSICSHARE_SONG_ALREADY_UNAPPROVED'	=> 'Questo brano risultava gia\' in attesa di approvazione: non e\' stato modificato e all\'autore non e\' stato inviato un secondo avviso.',
 ]);

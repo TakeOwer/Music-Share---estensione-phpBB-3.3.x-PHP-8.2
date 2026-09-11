@@ -69,6 +69,7 @@ services:
             - '@salvocortesiano.musicshare.playlist_repository'
             - '@salvocortesiano.musicshare.upload_handler'
             - '@salvocortesiano.musicshare.storage_helper'
+            - '@salvocortesiano.musicshare.genre_translator'
             - '%core.root_path%'
             - '%core.php_ext%'
 
@@ -184,3 +185,8 @@ services:
             - '@salvocortesiano.musicshare.storage_helper'
             - '%core.root_path%'
             - '%core.table_prefix%'
+
+    salvocortesiano.musicshare.genre_translator:
+        class: salvocortesiano\musicshare\service\genre_translator
+        arguments:
+            - '@user'

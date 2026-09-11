@@ -314,4 +314,13 @@ $lang = array_merge($lang, [
 	'MS_NOTIF_TOTAL_LABEL'	=> 'Notifiche dell\'estensione presenti in tutto',
 
 	'MS_FIX_NOTIF_ROWS_UNREAD'	=> 'Ci sono %1$d notifiche, quasi tutte ancora da leggere: la pulizia delle sole notifiche lette non ne rimuoverebbe nessuna. Sono il risultato di un invio a troppi destinatari. Restringi prima il permesso "Riceve la notifica dei nuovi brani" nella scheda Gruppi autorizzati, poi usa "Azzera tutte le notifiche" qui sotto per ripartire da zero.',
+
+	'MUSICSHARE_GROUPS_UNCHANGED'		=> 'Nessuna modifica da salvare: i permessi erano gia\' quelli indicati.',
+	'MUSICSHARE_GROUPS_ROLES_TITLE'		=> 'Come vengono salvati questi permessi',
+	'MUSICSHARE_GROUPS_ROLES_NOTE'		=> 'Vengono modificati soltanto i gruppi in cui cambi qualcosa: gli altri restano intatti. Se un gruppo usa un ruolo per i permessi utente (per esempio "Utenti registrati standard"), la modifica viene applicata al ruolo, cosi\' l\'assegnazione non va perduta. Tieni presente che un ruolo puo\' essere condiviso da piu\' gruppi: in quel caso la modifica vale per tutti quelli che lo usano. Al salvataggio ti viene indicato quali ruoli sono stati toccati.',
+	'MUSICSHARE_GROUPS_ROLES_TOUCHED'	=> 'Ruoli modificati: %s. La modifica vale per tutti i gruppi che usano questi ruoli.',
+
+	'MUSICSHARE_SONG_NOT_FOUND'			=> 'Brano non trovato: potrebbe essere stato eliminato nel frattempo.',
+	'MUSICSHARE_SONG_ALREADY_APPROVED'	=> 'Questo brano risultava gia\' approvato: non e\' stato modificato e all\'autore non e\' stato inviato un secondo avviso. Se lo vedevi ancora fra quelli in attesa, la pagina non era aggiornata.',
+	'MUSICSHARE_SONG_ALREADY_UNAPPROVED'	=> 'Questo brano risultava gia\' in attesa di approvazione: non e\' stato modificato e all\'autore non e\' stato inviato un secondo avviso.',
 ]);
