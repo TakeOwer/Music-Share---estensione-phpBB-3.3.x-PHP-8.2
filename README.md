@@ -1,6 +1,6 @@
 # Music Share — estensione phpBB 3.3.x / PHP 8.2
 
-Versione corrente: **1.24.2** (il numero si aggiorna nel campo `version` di `composer.json`).
+Versione corrente: **1.24.21** (il numero si aggiorna nel campo `version` di `composer.json`).
 
 Estensione in stile Spotify: upload brani (UCP + sezione forum dedicata),
 sfoglia per genere, playlist personali, player globale con copertina,
