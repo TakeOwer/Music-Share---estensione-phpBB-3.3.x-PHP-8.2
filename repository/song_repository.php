@@ -17,14 +17,18 @@ class song_repository
 	protected $song_genre_table;
 	protected $genres_table;
 	protected $votes_table;
+	protected $plays_table;
+	protected $downloads_table;
 
-	public function __construct(\phpbb\db\driver\driver_interface $db, $songs_table, $song_genre_table, $genres_table, $votes_table = '')
+	public function __construct(\phpbb\db\driver\driver_interface $db, $songs_table, $song_genre_table, $genres_table, $votes_table = '', $plays_table = '', $downloads_table = '')
 	{
 		$this->db = $db;
 		$this->songs_table = $songs_table;
 		$this->song_genre_table = $song_genre_table;
 		$this->genres_table = $genres_table;
 		$this->votes_table = $votes_table;
+		$this->plays_table = $plays_table;
+		$this->downloads_table = $downloads_table;
 	}
 
 	/**
@@ -268,7 +272,7 @@ class song_repository
 
 	public function get_songs_by_genre($genre_id, $start = 0, $limit = 25, $approved_only = true)
 	{
-		$sql = 'SELECT s.*, u.username, u.user_colour
+		$sql = 'SELECT s.*, u.username, u.user_colour, u.user_allow_pm
 			FROM ' . $this->songs_table . ' s, ' . $this->song_genre_table . ' sg, ' . USERS_TABLE . ' u
 			WHERE sg.genre_id = ' . (int) $genre_id . '
 				AND sg.song_id = s.song_id
@@ -301,7 +305,7 @@ class song_repository
 	 */
 	public function get_public_songs_by_user($user_id, $start = 0, $limit = 25)
 	{
-		$sql = 'SELECT s.*, u.username, u.user_colour
+		$sql = 'SELECT s.*, u.username, u.user_colour, u.user_allow_pm
 			FROM ' . $this->songs_table . ' s, ' . USERS_TABLE . ' u
 			WHERE s.user_id = ' . (int) $user_id . '
 				AND u.user_id = s.user_id
@@ -389,7 +393,9 @@ class song_repository
 	 */
 	public function get_user_stats($user_id)
 	{
-		$sql = 'SELECT COUNT(*) AS songs, SUM(play_count) AS plays, SUM(song_duration) AS duration
+		$sql = 'SELECT COUNT(*) AS songs, SUM(play_count) AS plays, SUM(song_duration) AS duration,
+				SUM(download_count) AS downloads, SUM(song_likes) AS likes,
+				SUM(song_dislikes) AS dislikes
 			FROM ' . $this->songs_table . '
 			WHERE song_approved = 1
 				AND user_id = ' . (int) $user_id;
@@ -397,11 +403,69 @@ class song_repository
 		$row = $this->db->sql_fetchrow($result);
 		$this->db->sql_freeresult($result);
 
+		// senza brani le somme tornano NULL, non zero: il cast le
+		// riporta a numeri, altrimenti la pagina di un autore nuovo
+		// mostrerebbe caselle vuote al posto degli zeri
 		return [
 			'songs'		=> (int) $row['songs'],
 			'plays'		=> (int) $row['plays'],
 			'duration'	=> (int) $row['duration'],
+			'downloads'	=> (int) $row['downloads'],
+			'likes'		=> (int) $row['likes'],
+			'dislikes'	=> (int) $row['dislikes'],
 		];
+	}
+
+	/**
+	 * Brani piu' ascoltati di un singolo autore.
+	 *
+	 * get_top_songs() e' la classifica generale del forum: qui serve la
+	 * stessa cosa ristretta a una persona. I brani mai ascoltati sono
+	 * esclusi, perche' un elenco "i piu' ascoltati" pieno di zeri non
+	 * dice nulla a chi guarda.
+	 *
+	 * @param int $user_id
+	 * @param int $limit
+	 * @return array
+	 */
+	public function get_top_songs_by_user($user_id, $limit = 5)
+	{
+		$sql = 'SELECT s.*, u.username, u.user_colour, u.user_allow_pm
+			FROM ' . $this->songs_table . ' s, ' . USERS_TABLE . ' u
+			WHERE s.user_id = ' . (int) $user_id . '
+				AND u.user_id = s.user_id
+				AND s.song_approved = 1
+				AND s.play_count > 0
+			ORDER BY s.play_count DESC, s.upload_time DESC';
+		$result = $this->db->sql_query_limit($sql, $limit);
+		$rows = $this->db->sql_fetchrowset($result);
+		$this->db->sql_freeresult($result);
+
+		return $rows;
+	}
+
+	/**
+	 * Dati dell'autore per la sua pagina pubblica.
+	 *
+	 * Prima il nome si prendeva dalla prima riga dei brani: con zero
+	 * brani la pagina restava senza nome. Questa query lo prende dove
+	 * sta davvero, e serve anche a distinguere un autore senza brani da
+	 * un identificativo che non esiste.
+	 *
+	 * @param int $user_id
+	 * @return array|false
+	 */
+	public function get_author($user_id)
+	{
+		$sql = 'SELECT user_id, username, user_colour, user_allow_pm, user_type, user_regdate,
+				user_avatar, user_avatar_type, user_avatar_width, user_avatar_height
+			FROM ' . USERS_TABLE . '
+			WHERE user_id = ' . (int) $user_id;
+		$result = $this->db->sql_query($sql);
+		$row = $this->db->sql_fetchrow($result);
+		$this->db->sql_freeresult($result);
+
+		return $row;
 	}
 
 	public function get_user_total_size($user_id)
@@ -423,6 +487,368 @@ class song_repository
 		$this->db->sql_query($sql);
 
 		$this->delete_votes($song_id);
+	}
+
+	/**
+	 * Registra un ascolto: contatore complessivo piu' riga datata.
+	 *
+	 * Il contatore da solo non basta per le classifiche a periodo: senza
+	 * la data, i brani caricati per primi resterebbero in cima per
+	 * sempre e un brano nuovo non entrerebbe mai in classifica.
+	 *
+	 * @param int $song_id
+	 * @param int $user_id
+	 * @return void
+	 */
+	public function log_play($song_id, $user_id = 0, $session_id = '')
+	{
+		$this->db->sql_query('INSERT INTO ' . $this->plays_table . ' ' . $this->db->sql_build_array('INSERT', array(
+			'song_id'		=> (int) $song_id,
+			'user_id'		=> (int) $user_id,
+			'session_id'	=> substr((string) $session_id, 0, 32),
+			'play_time'		=> time(),
+		)));
+	}
+
+	/**
+	 * Questa persona ha gia' ascoltato il brano di recente?
+	 *
+	 * Per gli utenti registrati si guarda l'identificativo; per gli
+	 * ospiti, che lo condividono tutti, si guarda la sessione.
+	 *
+	 * @param int $song_id
+	 * @param int $user_id
+	 * @param string $session_id
+	 * @param int $ore finestra entro cui non si conta un secondo ascolto
+	 * @return bool
+	 */
+	public function played_recently($song_id, $user_id, $session_id, $ore)
+	{
+		$ore = (int) $ore;
+
+		if ($ore <= 0)
+		{
+			return false;
+		}
+
+		$da = time() - ($ore * 3600);
+
+		$chi = ((int) $user_id !== ANONYMOUS)
+			? 'user_id = ' . (int) $user_id
+			: "session_id = '" . $this->db->sql_escape(substr((string) $session_id, 0, 32)) . "'";
+
+		$sql = 'SELECT 1 AS trovato FROM ' . $this->plays_table . '
+			WHERE song_id = ' . (int) $song_id . '
+				AND play_time >= ' . (int) $da . '
+				AND ' . $chi;
+		$result = $this->db->sql_query_limit($sql, 1);
+		$row = $this->db->sql_fetchrow($result);
+		$this->db->sql_freeresult($result);
+
+		return (bool) $row;
+	}
+
+	/**
+	 * Brani piu' ascoltati in un periodo.
+	 *
+	 * @param int $giorni finestra in giorni; 0 = da sempre
+	 * @param int $limit
+	 * @return array
+	 */
+	public function get_top_songs_period($giorni = 7, $limit = 10)
+	{
+		$giorni = (int) $giorni;
+
+		if ($giorni <= 0)
+		{
+			return $this->get_top_songs($limit);
+		}
+
+		$da = time() - ($giorni * 86400);
+
+		// Due passaggi invece di uno.
+		//
+		// Raggruppare direttamente su SELECT s.* fallisce con
+		// ONLY_FULL_GROUP_BY, attivo di serie da MySQL 5.7.5: si
+		// raggruppa quindi sulla sola tabella degli ascolti, poi si
+		// leggono i brani corrispondenti.
+		$sql = 'SELECT p.song_id, COUNT(*) AS period_plays
+			FROM ' . $this->plays_table . ' p
+			WHERE p.play_time >= ' . (int) $da . '
+			GROUP BY p.song_id
+			ORDER BY period_plays DESC';
+		$result = $this->db->sql_query_limit($sql, max(1, $limit * 3));
+
+		$conteggi = array();
+
+		while ($row = $this->db->sql_fetchrow($result))
+		{
+			$conteggi[(int) $row['song_id']] = (int) $row['period_plays'];
+		}
+		$this->db->sql_freeresult($result);
+
+		if (empty($conteggi))
+		{
+			return array();
+		}
+
+		$sql = 'SELECT s.*, u.username, u.user_colour, u.user_allow_pm
+			FROM ' . $this->songs_table . ' s, ' . USERS_TABLE . ' u
+			WHERE u.user_id = s.user_id
+				AND s.song_approved = 1
+				AND ' . $this->db->sql_in_set('s.song_id', array_keys($conteggi));
+		$result = $this->db->sql_query($sql);
+		$rows = $this->db->sql_fetchrowset($result);
+		$this->db->sql_freeresult($result);
+
+		// l'ordine lo decide il conteggio del periodo, non il database:
+		// la seconda query non lo conosce
+		foreach ($rows as $i => $riga)
+		{
+			$rows[$i]['period_plays'] = isset($conteggi[(int) $riga['song_id']])
+				? $conteggi[(int) $riga['song_id']] : 0;
+		}
+
+		usort($rows, function ($a, $b) {
+			if ($a['period_plays'] === $b['period_plays'])
+			{
+				return (int) $b['upload_time'] - (int) $a['upload_time'];
+			}
+
+			return $b['period_plays'] - $a['period_plays'];
+		});
+
+		return array_slice($rows, 0, $limit);
+	}
+
+	/**
+	 * Rimuove le righe di ascolto piu' vecchie del periodo indicato.
+	 *
+	 * @param int $giorni
+	 * @param int $max_blocchi
+	 * @return int righe rimosse
+	 */
+	public function purge_old_plays($giorni, $max_blocchi = 20)
+	{
+		$giorni = (int) $giorni;
+
+		if ($giorni <= 0)
+		{
+			return 0;
+		}
+
+		$limite = time() - ($giorni * 86400);
+		$rimosse = 0;
+
+		for ($i = 0; $i < $max_blocchi; $i++)
+		{
+			$this->db->sql_query_limit(
+				'DELETE FROM ' . $this->plays_table . ' WHERE play_time < ' . (int) $limite,
+				500
+			);
+			$quante = (int) $this->db->sql_affectedrows();
+			$rimosse += $quante;
+
+			if ($quante < 500)
+			{
+				break;
+			}
+		}
+
+		return $rimosse;
+	}
+
+	/**
+	 * Incrementa il contatore dei download di un brano.
+	 *
+	 * @param int $song_id
+	 * @return void
+	 */
+	/**
+	 * Fra gli argomenti indicati, quali esistono davvero e sono visibili.
+	 *
+	 * Serve a non mostrare il collegamento alla discussione quando
+	 * l'argomento e' stato cancellato. Non basta guardare se il brano ha
+	 * un identificativo salvato: phpBB conosce anche la cancellazione
+	 * "morbida", che nasconde l'argomento lasciandone la riga nel
+	 * database. In quel caso l'argomento risulta esistente ma i lettori
+	 * normali vedono "questo argomento non esiste".
+	 *
+	 * Una sola interrogazione per l'intera pagina, non una per riga.
+	 *
+	 * @param array $topic_ids
+	 * @return array topic_id => forum_id
+	 */
+	public function get_visible_topics(array $topic_ids)
+	{
+		$topic_ids = array_filter(array_map('intval', $topic_ids));
+
+		if (empty($topic_ids))
+		{
+			return array();
+		}
+
+		$sql = 'SELECT topic_id, forum_id FROM ' . TOPICS_TABLE . '
+			WHERE ' . $this->db->sql_in_set('topic_id', $topic_ids) . '
+				AND topic_visibility = ' . ITEM_APPROVED;
+		$result = $this->db->sql_query($sql);
+
+		$out = array();
+
+		while ($row = $this->db->sql_fetchrow($result))
+		{
+			$out[(int) $row['topic_id']] = (int) $row['forum_id'];
+		}
+		$this->db->sql_freeresult($result);
+
+		return $out;
+	}
+
+	/**
+	 * Slega dai brani gli argomenti che non esistono piu'.
+	 *
+	 * Senza questo, un brano continuerebbe a mostrare il collegamento a
+	 * una discussione cancellata, e il pulsante per aprirne una nuova
+	 * resterebbe nascosto perche' il brano risulta gia' collegato.
+	 *
+	 * @param array $topic_ids
+	 * @return int brani slegati
+	 */
+	public function clear_topics(array $topic_ids)
+	{
+		$topic_ids = array_filter(array_map('intval', $topic_ids));
+
+		if (empty($topic_ids))
+		{
+			return 0;
+		}
+
+		$this->db->sql_query('UPDATE ' . $this->songs_table . '
+			SET topic_id = 0, post_id = 0
+			WHERE ' . $this->db->sql_in_set('topic_id', $topic_ids));
+
+		return (int) $this->db->sql_affectedrows();
+	}
+
+	/**
+	 * Slega i brani il cui primo messaggio e' stato cancellato.
+	 *
+	 * Cancellare il solo messaggio iniziale lascia in piedi l'argomento
+	 * ma porta via il lettore: il collegamento non ha piu' senso.
+	 *
+	 * @param array $post_ids
+	 * @return int
+	 */
+	public function clear_posts(array $post_ids)
+	{
+		$post_ids = array_filter(array_map('intval', $post_ids));
+
+		if (empty($post_ids))
+		{
+			return 0;
+		}
+
+		$this->db->sql_query('UPDATE ' . $this->songs_table . '
+			SET topic_id = 0, post_id = 0
+			WHERE ' . $this->db->sql_in_set('post_id', $post_ids));
+
+		return (int) $this->db->sql_affectedrows();
+	}
+
+	/**
+	 * Registra un download e dice se andava contato.
+	 *
+	 * Un browser, e soprattutto un gestore di download, apre piu'
+	 * connessioni in parallelo sullo stesso file: contando le richieste
+	 * HTTP un unico download ne valeva cinque. Si conta quindi la
+	 * persona, non la richiesta, con lo stesso criterio degli ascolti.
+	 *
+	 * @param int $song_id
+	 * @param int $user_id
+	 * @param string $session_id
+	 * @param int $ore finestra entro cui non si conta un secondo download
+	 * @return bool true se il download e' stato conteggiato
+	 */
+	public function log_download($song_id, $user_id, $session_id, $ore)
+	{
+		$ore = (int) $ore;
+
+		if ($ore > 0)
+		{
+			$da = time() - ($ore * 3600);
+
+			$chi = ((int) $user_id !== ANONYMOUS)
+				? 'user_id = ' . (int) $user_id
+				: "session_id = '" . $this->db->sql_escape(substr((string) $session_id, 0, 32)) . "'";
+
+			$sql = 'SELECT 1 AS trovato FROM ' . $this->downloads_table . '
+				WHERE song_id = ' . (int) $song_id . '
+					AND dl_time >= ' . (int) $da . '
+					AND ' . $chi;
+			$result = $this->db->sql_query_limit($sql, 1);
+			$row = $this->db->sql_fetchrow($result);
+			$this->db->sql_freeresult($result);
+
+			if ($row)
+			{
+				return false;
+			}
+		}
+
+		$this->db->sql_query('INSERT INTO ' . $this->downloads_table . ' ' . $this->db->sql_build_array('INSERT', array(
+			'song_id'		=> (int) $song_id,
+			'user_id'		=> (int) $user_id,
+			'session_id'	=> substr((string) $session_id, 0, 32),
+			'dl_time'		=> time(),
+		)));
+
+		$this->increment_download_count($song_id);
+
+		return true;
+	}
+
+	/**
+	 * Rimuove le righe di download piu' vecchie del periodo indicato.
+	 *
+	 * @param int $giorni
+	 * @param int $max_blocchi
+	 * @return int
+	 */
+	public function purge_old_downloads($giorni, $max_blocchi = 20)
+	{
+		$giorni = (int) $giorni;
+
+		if ($giorni <= 0)
+		{
+			return 0;
+		}
+
+		$limite = time() - ($giorni * 86400);
+		$rimosse = 0;
+
+		for ($i = 0; $i < $max_blocchi; $i++)
+		{
+			$this->db->sql_query_limit(
+				'DELETE FROM ' . $this->downloads_table . ' WHERE dl_time < ' . (int) $limite,
+				500
+			);
+			$quante = (int) $this->db->sql_affectedrows();
+			$rimosse += $quante;
+
+			if ($quante < 500)
+			{
+				break;
+			}
+		}
+
+		return $rimosse;
+	}
+
+	public function increment_download_count($song_id)
+	{
+		$this->db->sql_query('UPDATE ' . $this->songs_table . '
+			SET download_count = download_count + 1
+			WHERE song_id = ' . (int) $song_id);
 	}
 
 	public function increment_play_count($song_id)
@@ -454,7 +880,7 @@ class song_repository
 			$where .= ' AND s.user_id <> ' . (int) $exclude_user;
 		}
 
-		$sql = 'SELECT s.*, u.username, u.user_colour
+		$sql = 'SELECT s.*, u.username, u.user_colour, u.user_allow_pm
 			FROM ' . $this->songs_table . ' s, ' . USERS_TABLE . ' u
 			WHERE s.song_approved = 1
 				AND u.user_id = s.user_id' . $where . '
@@ -547,7 +973,7 @@ class song_repository
 		);
 		$order_by = isset($orders[$order]) ? $orders[$order] : $orders['songs'];
 
-		$sql = 'SELECT s.user_id, u.username, u.user_colour,
+		$sql = 'SELECT s.user_id, u.username, u.user_colour, u.user_allow_pm,
 				COUNT(*) AS songs,
 				SUM(s.play_count) AS plays,
 				SUM(s.song_likes) AS likes,
@@ -562,6 +988,98 @@ class song_repository
 		$this->db->sql_freeresult($result);
 
 		return $rows;
+	}
+
+	/**
+	 * Brani pubblicati dagli utenti che una persona segue.
+	 *
+	 * @param int $user_id chi guarda
+	 * @param string $follows_table
+	 * @param int $start
+	 * @param int $limit
+	 * @return array
+	 */
+	public function get_songs_from_followed($user_id, $follows_table, $start = 0, $limit = 25)
+	{
+		$sql = 'SELECT s.*, u.username, u.user_colour, u.user_allow_pm
+			FROM ' . $this->songs_table . ' s, ' . USERS_TABLE . ' u, ' . $follows_table . ' f
+			WHERE f.user_id = ' . (int) $user_id . '
+				AND s.user_id = f.author_id
+				AND u.user_id = s.user_id
+				AND s.song_approved = 1
+			ORDER BY s.upload_time DESC';
+		$result = $this->db->sql_query_limit($sql, $limit, $start);
+		$rows = $this->db->sql_fetchrowset($result);
+		$this->db->sql_freeresult($result);
+
+		return $rows;
+	}
+
+	/**
+	 * Quanti brani hanno pubblicato in tutto gli utenti seguiti.
+	 *
+	 * @param int $user_id
+	 * @param string $follows_table
+	 * @return int
+	 */
+	public function count_songs_from_followed($user_id, $follows_table)
+	{
+		$sql = 'SELECT COUNT(*) AS quanti
+			FROM ' . $this->songs_table . ' s, ' . $follows_table . ' f
+			WHERE f.user_id = ' . (int) $user_id . '
+				AND s.user_id = f.author_id
+				AND s.song_approved = 1';
+		$result = $this->db->sql_query($sql);
+		$row = $this->db->sql_fetchrow($result);
+		$this->db->sql_freeresult($result);
+
+		return (int) $row['quanti'];
+	}
+
+	/**
+	 * Brani a cui un utente ha messo "mi piace".
+	 *
+	 * @param int $user_id
+	 * @param int $start
+	 * @param int $limit
+	 * @return array
+	 */
+	public function get_liked_songs($user_id, $start = 0, $limit = 25)
+	{
+		$sql = 'SELECT s.*, u.username, u.user_colour, u.user_allow_pm, v.vote_time
+			FROM ' . $this->songs_table . ' s, ' . USERS_TABLE . ' u, ' . $this->votes_table . ' v
+			WHERE v.user_id = ' . (int) $user_id . '
+				AND v.vote = 1
+				AND s.song_id = v.song_id
+				AND u.user_id = s.user_id
+				AND s.song_approved = 1
+			ORDER BY v.vote_time DESC';
+		$result = $this->db->sql_query_limit($sql, $limit, $start);
+		$rows = $this->db->sql_fetchrowset($result);
+		$this->db->sql_freeresult($result);
+
+		return $rows;
+	}
+
+	/**
+	 * Quanti brani piacciono a un utente.
+	 *
+	 * @param int $user_id
+	 * @return int
+	 */
+	public function count_liked_songs($user_id)
+	{
+		$sql = 'SELECT COUNT(*) AS quanti
+			FROM ' . $this->votes_table . ' v, ' . $this->songs_table . ' s
+			WHERE v.user_id = ' . (int) $user_id . '
+				AND v.vote = 1
+				AND s.song_id = v.song_id
+				AND s.song_approved = 1';
+		$result = $this->db->sql_query($sql);
+		$row = $this->db->sql_fetchrow($result);
+		$this->db->sql_freeresult($result);
+
+		return (int) $row['quanti'];
 	}
 
 	/**
@@ -654,7 +1172,7 @@ class song_repository
 
 	public function get_top_songs($limit = 10, $approved_only = true)
 	{
-		$sql = 'SELECT s.*, u.username, u.user_colour
+		$sql = 'SELECT s.*, u.username, u.user_colour, u.user_allow_pm
 			FROM ' . $this->songs_table . ' s, ' . USERS_TABLE . ' u
 			WHERE u.user_id = s.user_id' .
 			($approved_only ? ' AND s.song_approved = 1' : '') . '
@@ -668,7 +1186,7 @@ class song_repository
 
 	public function search($keywords, $start = 0, $limit = 25, $genre_id = 0)
 	{
-		$sql = 'SELECT s.*, u.username, u.user_colour
+		$sql = 'SELECT s.*, u.username, u.user_colour, u.user_allow_pm
 			FROM ' . $this->songs_table . ' s, ' . USERS_TABLE . ' u' . $this->search_join($genre_id) . '
 			WHERE s.song_approved = 1
 				AND u.user_id = s.user_id
@@ -746,7 +1264,7 @@ class song_repository
 	 */
 	public function get_all_songs($start = 0, $limit = 25, $keywords = '')
 	{
-		$sql = 'SELECT s.*, u.username, u.user_colour
+		$sql = 'SELECT s.*, u.username, u.user_colour, u.user_allow_pm
 			FROM ' . $this->songs_table . ' s, ' . USERS_TABLE . ' u
 			WHERE u.user_id = s.user_id' . $this->build_moderation_where($keywords) . '
 			ORDER BY s.upload_time DESC';
@@ -783,7 +1301,7 @@ class song_repository
 
 	public function get_pending_songs($start = 0, $limit = 25)
 	{
-		$sql = 'SELECT s.*, u.username FROM ' . $this->songs_table . ' s, ' . USERS_TABLE . ' u
+		$sql = 'SELECT s.*, u.username, u.user_colour, u.user_allow_pm FROM ' . $this->songs_table . ' s, ' . USERS_TABLE . ' u
 			WHERE s.song_approved = 0
 				AND u.user_id = s.user_id
 			ORDER BY s.upload_time ASC';

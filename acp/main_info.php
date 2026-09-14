@@ -33,6 +33,11 @@ class main_info
 					'auth'	=> 'ext_salvocortesiano/musicshare && acl_a_board',
 					'cat'	=> array('ACP_MUSICSHARE_TITLE'),
 				),
+				'tools'	=> array(
+					'title'	=> 'ACP_MUSICSHARE_TOOLS',
+					'auth'	=> 'ext_salvocortesiano/musicshare && acl_a_board',
+					'cat'	=> array('ACP_MUSICSHARE_TITLE'),
+				),
 				'maintenance'	=> array(
 					'title'	=> 'ACP_MUSICSHARE_MAINTENANCE',
 					'auth'	=> 'ext_salvocortesiano/musicshare && acl_a_board',

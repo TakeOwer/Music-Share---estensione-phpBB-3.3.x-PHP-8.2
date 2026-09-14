@@ -27,6 +27,11 @@ class listener implements EventSubscriberInterface
 	protected $helper;
 	protected $config;
 	protected $config_text;
+	protected $db;
+	protected $importer;
+	protected $contact_helper;
+	protected $wall_repository;
+	protected $request;
 	protected $song_repository;
 	protected $cache;
 	protected $root_path;
@@ -38,6 +43,12 @@ class listener implements EventSubscriberInterface
 			'core.page_header'	=> 'add_page_vars',
 			'core.user_setup'	=> 'load_language',
 			'core.text_formatter_s9e_configure_after'	=> 'add_bbcode',
+			'core.parse_attachments_modify_template_data'	=> 'attachment_import_link',
+			'core.submit_post_end'		=> 'auto_import_attachments',
+			'core.delete_user_after'						=> 'users_deleted',
+			'core.delete_topics_after_query'	=> 'topics_deleted',
+			'core.delete_posts_after'	=> 'posts_deleted',
+			'core.ucp_pm_compose_predefined_message'	=> 'prefill_pm_subject',
 			'core.permissions'	=> 'add_permissions',
 			'core.memberlist_view_profile'		=> 'show_profile_stats',
 			'core.viewtopic_post_rowset_data'	=> 'collect_post_authors',
@@ -46,6 +57,12 @@ class listener implements EventSubscriberInterface
 		);
 	}
 
+	/**
+	 * Il repository della bacheca e' l'ultimo argomento di proposito:
+	 * inserirlo in mezzo avrebbe spostato tutti quelli seguenti e il
+	 * listener avrebbe ricevuto dipendenze sbagliate senza che nulla
+	 * segnalasse l'errore.
+	 */
 	public function __construct(
 		\phpbb\template\template $template,
 		\phpbb\user $user,
@@ -55,8 +72,13 @@ class listener implements EventSubscriberInterface
 		\phpbb\config\db_text $config_text,
 		\salvocortesiano\musicshare\repository\song_repository $song_repository,
 		\phpbb\cache\driver\driver_interface $cache,
+		\phpbb\db\driver\driver_interface $db,
+		\salvocortesiano\musicshare\service\attachment_importer $importer,
+		\salvocortesiano\musicshare\service\contact_helper $contact_helper,
+		\phpbb\request\request $request,
 		$root_path,
-		$php_ext
+		$php_ext,
+		\salvocortesiano\musicshare\repository\wall_repository $wall_repository
 	)
 	{
 		$this->template = $template;
@@ -67,8 +89,13 @@ class listener implements EventSubscriberInterface
 		$this->config_text = $config_text;
 		$this->song_repository = $song_repository;
 		$this->cache = $cache;
+		$this->db = $db;
+		$this->importer = $importer;
+		$this->contact_helper = $contact_helper;
+		$this->request = $request;
 		$this->root_path = $root_path;
 		$this->php_ext = $php_ext;
+		$this->wall_repository = $wall_repository;
 	}
 
 	/**
@@ -85,6 +112,316 @@ class listener implements EventSubscriberInterface
 
 	/** @var array conteggi già calcolati, user_id => brani */
 	protected $song_counts = null;
+
+	/**
+	 * Precompila il titolo del messaggio privato quando si arriva dalla
+	 * bustina accanto a un brano.
+	 *
+	 * phpBB mette a disposizione un evento apposito per questo, quindi
+	 * non serve alcuna forzatura: si passa l'identificativo del brano
+	 * nell'indirizzo e qui si compone il titolo, nella lingua di chi
+	 * scrive e non in quella di chi ha caricato.
+	 *
+	 * @param \phpbb\event\data $event
+	 */
+	public function prefill_pm_subject($event)
+	{
+		$song_id = (int) $this->request->variable('musicshare_song', 0);
+
+		if ($song_id <= 0)
+		{
+			return;
+		}
+
+		// il titolo si tocca solo se e' ancora vuoto: se l'utente sta
+		// riprendendo una bozza, quella vince
+		if (trim((string) $event['message_subject']) !== '')
+		{
+			return;
+		}
+
+		$song = $this->song_repository->get_song($song_id);
+
+		if (!$song || empty($song['song_approved']))
+		{
+			return;
+		}
+
+		$etichetta = ((string) $song['song_artist'] !== '')
+			? $song['song_artist'] . ' - ' . $song['song_title']
+			: (string) $song['song_title'];
+
+		$event['message_subject'] = utf8_substr(
+			$this->user->lang('MUSICSHARE_PM_SUBJECT', $etichetta), 0, 120
+		);
+	}
+
+	/**
+	 * Un argomento e' stato cancellato: i brani che vi puntavano tornano
+	 * senza discussione.
+	 *
+	 * Cosi' il collegamento sparisce dagli elenchi e ricompare il
+	 * pulsante che permette all'autore di aprirne uno nuovo.
+	 *
+	 * @param \phpbb\event\data $event
+	 */
+	/**
+	 * Utenti cancellati dal forum: via anche le loro bacheche e i
+	 * commenti che avevano lasciato altrove.
+	 *
+	 * Senza questa pulizia resterebbero righe legate a un utente che
+	 * non c'e' piu': le query uniscono la tabella degli utenti, quindi
+	 * quei commenti sparirebbero dalla vista continuando pero' a
+	 * occupare spazio e a falsare i conteggi.
+	 *
+	 * @param \phpbb\event\data $event
+	 * @return void
+	 */
+	public function users_deleted($event)
+	{
+		$ids = isset($event['user_ids']) ? (array) $event['user_ids'] : array();
+
+		if (empty($ids))
+		{
+			return;
+		}
+
+		try
+		{
+			$this->wall_repository->purge_users($ids);
+		}
+		catch (\Exception $e)
+		{
+			// la cancellazione dell'utente non deve fallire per questo
+		}
+	}
+
+	public function topics_deleted($event)
+	{
+		$ids = (array) $event['topic_ids'];
+
+		if (empty($ids))
+		{
+			return;
+		}
+
+		try
+		{
+			$this->song_repository->clear_topics($ids);
+			$this->cache->destroy(self::feed_cache_key_from_config($this->config));
+		}
+		catch (\Exception $e)
+		{
+			// la cancellazione dell'argomento non deve fallire per questo
+		}
+	}
+
+	/**
+	 * Messaggi cancellati: se fra questi c'e' il primo messaggio di un
+	 * brano, il brano torna senza discussione.
+	 *
+	 * @param \phpbb\event\data $event
+	 */
+	public function posts_deleted($event)
+	{
+		$ids = (array) $event['post_ids'];
+
+		if (empty($ids))
+		{
+			return;
+		}
+
+		try
+		{
+			if ($this->song_repository->clear_posts($ids))
+			{
+				$this->cache->destroy(self::feed_cache_key_from_config($this->config));
+			}
+		}
+		catch (\Exception $e)
+		{
+			// idem: non si ostacola la cancellazione
+		}
+	}
+
+	/**
+	 * Importa in libreria gli allegati audio dei messaggi scritti nei
+	 * forum indicati dall'amministratore.
+	 *
+	 * Attenzione: gli allegati vivono dentro i forum, che hanno permessi
+	 * di lettura propri, mentre la libreria e' unica e globale. Importare
+	 * da un forum riservato renderebbe quei brani ascoltabili da tutti.
+	 * Per questo l'importazione automatica non guarda tutto il forum ma
+	 * solo le sezioni scelte a mano, ed e' spenta di partenza.
+	 *
+	 * @param \phpbb\event\data $event
+	 */
+	public function auto_import_attachments($event)
+	{
+		if (empty($this->config['musicshare_auto_import']))
+		{
+			return;
+		}
+
+		$data = $event['data'];
+
+		if (empty($data['post_id']) || empty($data['forum_id']))
+		{
+			return;
+		}
+
+		$forum_id = (int) $data['forum_id'];
+
+		if (!in_array($forum_id, $this->get_auto_forums(), true))
+		{
+			return;
+		}
+
+		// solo i messaggi nuovi: modificandone uno vecchio gli allegati
+		// sono gia' stati valutati
+		if ($event['mode'] !== 'post' && $event['mode'] !== 'reply')
+		{
+			return;
+		}
+
+		$allegati = $this->importer->get_post_attachments((int) $data['post_id']);
+
+		if (empty($allegati))
+		{
+			return;
+		}
+
+		$autore = (int) $data['poster_id'];
+		$nome = $this->get_username($autore);
+
+		if ($nome === '')
+		{
+			return;
+		}
+
+		$in_attesa = !isset($this->config['musicshare_auto_pending'])
+			|| (bool) $this->config['musicshare_auto_pending'];
+
+		foreach ($allegati as $attach)
+		{
+			if (!$this->importer->is_audio($attach))
+			{
+				continue;
+			}
+
+			// Un errore qui non deve impedire la pubblicazione del
+			// messaggio: se l'importazione fallisce, il messaggio resta
+			// e l'allegato e' comunque scaricabile come sempre.
+			try
+			{
+				$this->importer->import($attach, $autore, $nome, array(
+					'allow_download'	=> !empty($this->config['musicshare_allow_download']) ? 1 : 0,
+				), $in_attesa);
+			}
+			catch (\Exception $e)
+			{
+				continue;
+			}
+		}
+	}
+
+	/**
+	 * Forum da cui importare automaticamente.
+	 *
+	 * @return array identificativi
+	 */
+	protected function get_auto_forums()
+	{
+		$grezzo = (string) $this->config_text->get('musicshare_auto_forums');
+
+		return array_values(array_filter(array_map('intval', explode(',', $grezzo))));
+	}
+
+	/**
+	 * Nome di un utente, per costruire la cartella dei suoi brani.
+	 *
+	 * @param int $user_id
+	 * @return string
+	 */
+	protected function get_username($user_id)
+	{
+		$sql = 'SELECT username FROM ' . USERS_TABLE . ' WHERE user_id = ' . (int) $user_id;
+		$result = $this->db->sql_query($sql);
+		$row = $this->db->sql_fetchrow($result);
+		$this->db->sql_freeresult($result);
+
+		return $row ? (string) $row['username'] : '';
+	}
+
+	/**
+	 * Aggiunge il collegamento "Aggiungi alla libreria" sotto gli
+	 * allegati audio dei messaggi.
+	 *
+	 * Il collegamento compare solo a chi ha caricato l'allegato (o a chi
+	 * modera i brani), solo per i formati che l'estensione accetta, e
+	 * solo se il brano non è già stato importato: l'importazione è un
+	 * gesto volontario dell'autore, non un travaso automatico.
+	 *
+	 * @param \phpbb\event\data $event
+	 */
+	public function attachment_import_link($event)
+	{
+		if (empty($this->config['musicshare_attach_import']))
+		{
+			return;
+		}
+
+		$attachment = $event['attachment'];
+		$block = $event['block_array'];
+
+		if (empty($attachment['attach_id']) || !empty($attachment['is_orphan']))
+		{
+			return;
+		}
+
+		$estensione = strtolower((string) $attachment['extension']);
+
+		if (!in_array($estensione, $this->get_allowed_ext(), true))
+		{
+			return;
+		}
+
+		$utente = (int) $this->user->data['user_id'];
+
+		// solo l'autore dell'allegato, o chi modera i brani
+		$proprio = ((int) $attachment['poster_id'] === $utente);
+
+		if (!$proprio && !$this->auth->acl_get('m_musicshare_manage'))
+		{
+			return;
+		}
+
+		if (!$this->auth->acl_get('u_musicshare_upload'))
+		{
+			return;
+		}
+
+		$block['S_MUSICSHARE_IMPORT'] = true;
+		$block['U_MUSICSHARE_IMPORT'] = $this->helper->route(
+			'salvocortesiano_musicshare_import',
+			array('attach_id' => (int) $attachment['attach_id'])
+		);
+
+		$event['block_array'] = $block;
+	}
+
+	/**
+	 * Formati audio accettati, come impostati in ACP.
+	 *
+	 * @return array
+	 */
+	protected function get_allowed_ext()
+	{
+		$ext = (string) $this->config['musicshare_allowed_ext'];
+		$ext = array_filter(array_map('trim', explode(',', strtolower($ext))));
+
+		return $ext ?: array('mp3', 'ogg', 'oga', 'flac', 'wav', 'm4a', 'aac');
+	}
 
 	/**
 	 * Registra il BBCode [musicshare]12[/musicshare] per inserire un
@@ -322,6 +659,30 @@ class listener implements EventSubscriberInterface
 		$downloads_on = !empty($this->config['musicshare_allow_download']);
 		$descriptions_on = !isset($this->config['musicshare_descriptions'])
 			|| (bool) $this->config['musicshare_descriptions'];
+		$topic_on = !empty($this->config['musicshare_topic_enabled'])
+			&& (int) $this->config['musicshare_topic_forum'] > 0;
+
+		// argomenti realmente esistenti e leggibili: una sola
+		// interrogazione per l'intero riquadro
+		$topic_ids = array();
+
+		foreach ($songs as $song)
+		{
+			if (!empty($song['topic_id']))
+			{
+				$topic_ids[] = (int) $song['topic_id'];
+			}
+		}
+
+		$argomenti = $this->song_repository->get_visible_topics($topic_ids);
+
+		foreach ($argomenti as $tid => $fid)
+		{
+			if (!$this->auth->acl_get('f_read', $fid))
+			{
+				unset($argomenti[$tid]);
+			}
+		}
 
 		foreach ($songs as $song)
 		{
@@ -333,11 +694,25 @@ class listener implements EventSubscriberInterface
 				'YEAR'			=> $song['song_year'] ? (int) $song['song_year'] : '',
 				'DURATION'		=> gmdate('i:s', (int) $song['song_duration']),
 				'PLAY_COUNT'		=> (int) $song['play_count'],
+				'DOWNLOAD_COUNT'	=> isset($song['download_count']) ? (int) $song['download_count'] : 0,
 				'DESCRIPTION'		=> ($descriptions_on && isset($song['song_description']))
 					? (string) $song['song_description'] : '',
+				'U_TOPIC'			=> (!empty($song['topic_id']) && isset($argomenti[(int) $song['topic_id']]))
+					? append_sid($this->root_path . 'viewtopic.' . $this->php_ext, 't=' . (int) $song['topic_id'])
+					: '',
+				'U_CONTACT'			=> $this->contact_helper->get_pm_url((int) $song['user_id'],
+					isset($song['user_allow_pm']) ? (int) $song['user_allow_pm'] : null,
+					(int) $song['song_id']),
+				'U_PUBLISH'			=> ($topic_on && !isset($argomenti[(int) $song['topic_id']]) && !empty($song['song_approved'])
+					&& (int) $song['user_id'] === (int) $this->user->data['user_id'])
+					? $this->helper->route('salvocortesiano_musicshare_publish', array('song_id' => (int) $song['song_id']))
+					: '',
 				'PLAY_COUNT_TEXT'	=> $this->user->lang('MUSICSHARE_PLAYS_COUNT', (int) $song['play_count']),
-				'UPLOADER'		=> get_username_string('full', (int) $song['user_id'], $song['username'], $song['user_colour']),
+				// stesso collegamento delle righe nel resto dell'estensione:
+				// il nome porta alla pagina di Music Share, non al profilo
+				'UPLOADER'		=> $this->uploader_link((int) $song['user_id'], $song['username'], $song['user_colour']),
 				'UPLOAD_DATE'	=> $this->user->format_date((int) $song['upload_time']),
+				'QUALITY'		=> \salvocortesiano\musicshare\service\metadata_extractor::quality_label($song, $this->user),
 				'U_STREAM'		=> $this->helper->route('salvocortesiano_musicshare_stream', array('song_id' => $song['song_id'])),
 				'U_COVER'		=> !empty($song['cover_path'])
 					? $this->helper->route('salvocortesiano_musicshare_cover', array('song_id' => $song['song_id']))
@@ -369,6 +744,19 @@ class listener implements EventSubscriberInterface
 	 * @param int $seconds
 	 * @return string
 	 */
+	protected function uploader_link($user_id, $username, $colore = '')
+	{
+		$user_id = (int) $user_id;
+		$nome = get_username_string('no_profile', $user_id, $username, $colore);
+
+		if ($user_id <= 0 || $user_id === ANONYMOUS)
+		{
+			return $nome;
+		}
+
+		return '<a href="' . $this->helper->route('salvocortesiano_musicshare_user', array('user_id' => $user_id)) . '">' . $nome . '</a>';
+	}
+
 	protected function format_duration($seconds)
 	{
 		$seconds = (int) $seconds;
@@ -396,6 +784,13 @@ class listener implements EventSubscriberInterface
 		$permissions['u_musicshare_view'] = array('lang' => 'ACL_U_MUSICSHARE_VIEW', 'cat' => 'musicshare');
 		$permissions['u_musicshare_feed'] = array('lang' => 'ACL_U_MUSICSHARE_FEED', 'cat' => 'musicshare');
 		$permissions['u_musicshare_notify'] = array('lang' => 'ACL_U_MUSICSHARE_NOTIFY', 'cat' => 'musicshare');
+		// Bacheca. Vanno dichiarati anche qui e non solo nella
+		// migrazione: la migrazione li crea nel database, questa riga li
+		// fa comparire nel pannello dei permessi. Senza, esistono ma
+		// nessuno puo' concederli o toglierli.
+		$permissions['u_musicshare_wall_post'] = array('lang' => 'ACL_U_MUSICSHARE_WALL_POST', 'cat' => 'musicshare');
+		$permissions['u_musicshare_wall_edit'] = array('lang' => 'ACL_U_MUSICSHARE_WALL_EDIT', 'cat' => 'musicshare');
+		$permissions['m_musicshare_wall'] = array('lang' => 'ACL_M_MUSICSHARE_WALL', 'cat' => 'musicshare');
 		$event['permissions'] = $permissions;
 	}
 
@@ -506,6 +901,11 @@ class listener implements EventSubscriberInterface
 			'embedPending'			=> 'MUSICSHARE_EMBED_PENDING',
 			'bbcodeCopied'			=> 'MUSICSHARE_BBCODE_COPIED',
 			'bbcodeManual'			=> 'MUSICSHARE_BBCODE_MANUAL',
+			// riquadro di conferma: titolo e pulsanti sono stringhe di
+			// phpBB, cosi' restano quelle che l'utente vede ovunque
+			'confirmTitle'			=> 'CONFIRM',
+			'yes'					=> 'YES',
+			'no'					=> 'NO',
 		);
 
 		$out = array();
@@ -647,7 +1047,15 @@ class listener implements EventSubscriberInterface
 			'U_MUSICSHARE_AJAX_UPLOAD'		=> $this->helper->route('salvocortesiano_musicshare_ajax_upload'),
 			'U_MUSICSHARE_AJAX_RECENT'		=> $this->helper->route('salvocortesiano_musicshare_ajax_recent'),
 			'U_MUSICSHARE_AJAX_VOTE'		=> $this->helper->route('salvocortesiano_musicshare_ajax_vote'),
+			'U_MUSICSHARE_AJAX_WALL_REACT'	=> $this->helper->route('salvocortesiano_musicshare_ajax_wall_react'),
 			'U_MUSICSHARE_AJAX_EMBED'		=> $this->helper->route('salvocortesiano_musicshare_ajax_embed'),
+			// Novita' da chi segui: nel menu accanto alle altre voci.
+			// Ha senso solo per chi e' collegato e se la funzione e'
+			// attiva, altrimenti porterebbe a una pagina vietata.
+			'U_MUSICSHARE_FOLLOWING'		=> ((int) $this->user->data['user_id'] !== ANONYMOUS
+				&& !empty($this->config['musicshare_follows_enabled'])
+				&& $this->auth->acl_get('u_musicshare_view'))
+				? $this->helper->route('salvocortesiano_musicshare_following') : '',
 			'S_MUSICSHARE_TOAST_SOUND'		=> !isset($this->config['musicshare_toast_sound'])
 				|| (bool) $this->config['musicshare_toast_sound'],
 			'MUSICSHARE_TOAST_VOLUME'		=> isset($this->config['musicshare_toast_volume'])

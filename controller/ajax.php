@@ -26,6 +26,8 @@ class ajax
 	protected $helper;
 	protected $config;
 	protected $cache;
+	protected $wall_repository;
+	protected $wall_manager;
 
 	public function __construct(
 		\phpbb\auth\auth $auth,
@@ -36,7 +38,9 @@ class ajax
 		\phpbb\cache\driver\driver_interface $cache,
 		playlist_repository $playlist_repository,
 		song_repository $song_repository,
-		upload_handler $upload_handler
+		upload_handler $upload_handler,
+		\salvocortesiano\musicshare\repository\wall_repository $wall_repository,
+		\salvocortesiano\musicshare\service\wall_manager $wall_manager
 	)
 	{
 		$this->auth = $auth;
@@ -48,6 +52,69 @@ class ajax
 		$this->playlist_repository = $playlist_repository;
 		$this->song_repository = $song_repository;
 		$this->upload_handler = $upload_handler;
+		$this->wall_repository = $wall_repository;
+		$this->wall_manager = $wall_manager;
+	}
+
+	/**
+	 * Reazione a un commento della bacheca: mi piace, non mi piace,
+	 * cuore.
+	 *
+	 * Stessa forma del voto sui brani: un solo indirizzo, il tipo di
+	 * reazione arriva come parametro, e la risposta contiene i conteggi
+	 * aggiornati piu' quelli che l'utente ha messo lui.
+	 *
+	 * @return JsonResponse
+	 */
+	public function wall_react()
+	{
+		$this->user->add_lang_ext('salvocortesiano/musicshare', 'common');
+
+		if (!$this->wall_manager->is_enabled())
+		{
+			return new JsonResponse(['success' => false, 'message' => $this->user->lang('MUSICSHARE_WALL_OFF')], 403);
+		}
+
+		$utente = (int) $this->user->data['user_id'];
+
+		if ($utente === ANONYMOUS)
+		{
+			return new JsonResponse(['success' => false, 'message' => $this->user->lang('MUSICSHARE_VOTE_LOGIN')], 403);
+		}
+
+		if (!check_link_hash($this->request->variable('hash', ''), 'musicshare_ajax'))
+		{
+			return new JsonResponse(['success' => false, 'message' => $this->user->lang('FORM_INVALID')], 400);
+		}
+
+		$comment_id = $this->request->variable('comment_id', 0);
+		$reaction = $this->request->variable('reaction', 0);
+
+		if (!in_array($reaction, \salvocortesiano\musicshare\repository\wall_repository::reaction_types(), true))
+		{
+			return new JsonResponse(['success' => false, 'message' => $this->user->lang('MUSICSHARE_VOTE_ERROR')], 400);
+		}
+
+		$commento = $this->wall_repository->get_comment($comment_id);
+
+		if (!$commento)
+		{
+			return new JsonResponse(['success' => false, 'message' => $this->user->lang('MUSICSHARE_WALL_NOT_FOUND')], 404);
+		}
+
+		// non si reagisce a quello che si e' scritto
+		if ((int) $commento['user_id'] === $utente)
+		{
+			return new JsonResponse(['success' => false, 'message' => $this->user->lang('MUSICSHARE_WALL_REACT_OWN')], 403);
+		}
+
+		$stato = $this->wall_repository->set_reaction($comment_id, $utente, $reaction);
+
+		return new JsonResponse([
+			'success'	=> true,
+			'counts'	=> (object) $stato['counts'],
+			'mine'		=> array_values($stato['mine']),
+		]);
 	}
 
 	/**

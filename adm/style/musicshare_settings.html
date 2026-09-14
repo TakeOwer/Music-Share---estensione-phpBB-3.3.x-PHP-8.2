@@ -29,7 +29,7 @@
 <form id="musicshare_settings" method="post" action="{U_ACTION}">
 
 	<fieldset>
-		<legend>{L_ACP_MUSICSHARE_SETTINGS}</legend>
+		<legend>{L_MS_SET_STORAGE}</legend>
 
 		<dl>
 			<dt><label for="musicshare_storage_path">{L_MUSICSHARE_STORAGE_PATH}:</label></dt>
@@ -71,6 +71,11 @@
 				<br /><span class="explain">{L_MUSICSHARE_MAX_USER_SPACE_EXPLAIN}</span>
 			</dd>
 		</dl>
+	</fieldset>
+
+	<fieldset>
+		<legend>{L_MS_SET_LIBRARY}</legend>
+
 		<dl>
 			<dt><label for="musicshare_songs_per_page">{L_MUSICSHARE_SONGS_PER_PAGE}:</label></dt>
 			<dd><input type="number" id="musicshare_songs_per_page" name="musicshare_songs_per_page" value="{MUSICSHARE_SONGS_PER_PAGE}" min="5" max="100" class="inputbox narrow" /></dd>
@@ -116,6 +121,163 @@
 			</dd>
 		</dl>
 		<dl>
+			<dt><label for="musicshare_show_license">{L_MUSICSHARE_SHOW_LICENSE}:</label></dt>
+			<dd>
+				<label><input type="radio" name="musicshare_show_license" value="1"<!-- IF MUSICSHARE_SHOW_LICENSE --> checked="checked"<!-- ENDIF --> /> {L_YES}</label>
+				<label><input type="radio" name="musicshare_show_license" value="0"<!-- IF not MUSICSHARE_SHOW_LICENSE --> checked="checked"<!-- ENDIF --> /> {L_NO}</label>
+				<br /><span class="explain">{L_MUSICSHARE_SHOW_LICENSE_EXPLAIN}</span>
+			</dd>
+		</dl>
+		<dl>
+			<dt><label for="musicshare_show_bpm">{L_MUSICSHARE_SHOW_BPM}:</label></dt>
+			<dd>
+				<label><input type="radio" name="musicshare_show_bpm" value="1"<!-- IF MUSICSHARE_SHOW_BPM --> checked="checked"<!-- ENDIF --> /> {L_YES}</label>
+				<label><input type="radio" name="musicshare_show_bpm" value="0"<!-- IF not MUSICSHARE_SHOW_BPM --> checked="checked"<!-- ENDIF --> /> {L_NO}</label>
+				<br /><span class="explain">{L_MUSICSHARE_SHOW_BPM_EXPLAIN}</span>
+			</dd>
+		</dl>
+	</fieldset>
+
+	<fieldset>
+		<legend>{L_MS_SET_USERS}</legend>
+
+		<dl>
+			<dt><label for="musicshare_follows_enabled">{L_MUSICSHARE_FOLLOWS}:</label></dt>
+			<dd>
+				<label><input type="radio" name="musicshare_follows_enabled" value="1"<!-- IF MUSICSHARE_FOLLOWS_ENABLED --> checked="checked"<!-- ENDIF --> /> {L_YES}</label>
+				<label><input type="radio" name="musicshare_follows_enabled" value="0"<!-- IF not MUSICSHARE_FOLLOWS_ENABLED --> checked="checked"<!-- ENDIF --> /> {L_NO}</label>
+				<br /><span class="explain">{L_MUSICSHARE_FOLLOWS_EXPLAIN}</span>
+			</dd>
+		</dl>
+		<dl>
+			<dt><label for="musicshare_play_interval">{L_MUSICSHARE_PLAY_INTERVAL}:</label></dt>
+			<dd><input type="number" id="musicshare_play_interval" name="musicshare_play_interval" value="{MUSICSHARE_PLAY_INTERVAL}" min="0" max="168" class="inputbox narrow" />
+			<br /><span class="explain">{L_MUSICSHARE_PLAY_INTERVAL_EXPLAIN}</span></dd>
+		</dl>
+		<dl>
+			<dt><label for="musicshare_plays_keep_days">{L_MUSICSHARE_PLAYS_KEEP}:</label></dt>
+			<dd><input type="number" id="musicshare_plays_keep_days" name="musicshare_plays_keep_days" value="{MUSICSHARE_PLAYS_KEEP_DAYS}" min="0" max="3650" class="inputbox narrow" />
+			<br /><span class="explain">{L_MUSICSHARE_PLAYS_KEEP_EXPLAIN}</span></dd>
+		</dl>
+	</fieldset>
+
+	<fieldset>
+		<legend>{L_MS_SET_TOPICS}</legend>
+
+		<dl>
+			<dt><label for="musicshare_topic_enabled">{L_MUSICSHARE_TOPIC_ENABLED}:</label></dt>
+			<dd>
+				<label><input type="radio" name="musicshare_topic_enabled" value="1"<!-- IF MUSICSHARE_TOPIC_ENABLED --> checked="checked"<!-- ENDIF --> /> {L_YES}</label>
+				<label><input type="radio" name="musicshare_topic_enabled" value="0"<!-- IF not MUSICSHARE_TOPIC_ENABLED --> checked="checked"<!-- ENDIF --> /> {L_NO}</label>
+				<br /><span class="explain">{L_MUSICSHARE_TOPIC_ENABLED_EXPLAIN}</span>
+			</dd>
+		</dl>
+		<dl>
+			<dt><label for="musicshare_topic_forum">{L_MUSICSHARE_TOPIC_FORUM}:</label></dt>
+			<dd>
+				<select id="musicshare_topic_forum" name="musicshare_topic_forum">
+					<option value="0">{L_MUSICSHARE_TOPIC_FORUM_NONE}</option>
+					<!-- BEGIN topic_forums -->
+					<option value="{topic_forums.FORUM_ID}"<!-- IF topic_forums.S_SELECTED --> selected="selected"<!-- ENDIF -->>{topic_forums.FORUM_NAME}</option>
+					<!-- END topic_forums -->
+				</select>
+				<br /><span class="explain">{L_MUSICSHARE_TOPIC_FORUM_EXPLAIN}</span>
+			</dd>
+		</dl>
+		<dl>
+			<dt><label for="musicshare_topic_title">{L_MUSICSHARE_TOPIC_TITLE}:</label></dt>
+			<dd><input type="text" id="musicshare_topic_title" name="musicshare_topic_title" value="{MUSICSHARE_TOPIC_TITLE}" size="45" class="inputbox" />
+			<br /><span class="explain">{L_MUSICSHARE_TOPIC_TITLE_EXPLAIN}</span></dd>
+		</dl>
+		<dl>
+			<dt><label for="musicshare_topic_message">{L_MUSICSHARE_TOPIC_MESSAGE}:</label></dt>
+			<dd><textarea id="musicshare_topic_message" name="musicshare_topic_message" rows="4" cols="60">{MUSICSHARE_TOPIC_MESSAGE}</textarea>
+			<br /><span class="explain">{L_MUSICSHARE_TOPIC_MESSAGE_EXPLAIN}</span></dd>
+		</dl>
+	</fieldset>
+
+	<fieldset>
+		<legend>{L_MS_SET_WALL}</legend>
+
+		<dl>
+			<dt><label for="musicshare_wall_enabled">{L_MUSICSHARE_WALL_ENABLED}:</label></dt>
+			<dd>
+				<label><input type="radio" name="musicshare_wall_enabled" value="1"<!-- IF MUSICSHARE_WALL_ENABLED --> checked="checked"<!-- ENDIF --> /> {L_YES}</label>
+				<label><input type="radio" name="musicshare_wall_enabled" value="0"<!-- IF not MUSICSHARE_WALL_ENABLED --> checked="checked"<!-- ENDIF --> /> {L_NO}</label>
+				<br /><span class="explain">{L_MUSICSHARE_WALL_ENABLED_EXPLAIN}</span>
+			</dd>
+		</dl>
+		<dl>
+			<dt><label for="musicshare_wall_author_moderates">{L_MUSICSHARE_WALL_AUTHOR_MOD}:</label></dt>
+			<dd>
+				<label><input type="radio" name="musicshare_wall_author_moderates" value="1"<!-- IF MUSICSHARE_WALL_AUTHOR_MOD --> checked="checked"<!-- ENDIF --> /> {L_YES}</label>
+				<label><input type="radio" name="musicshare_wall_author_moderates" value="0"<!-- IF not MUSICSHARE_WALL_AUTHOR_MOD --> checked="checked"<!-- ENDIF --> /> {L_NO}</label>
+				<br /><span class="explain">{L_MUSICSHARE_WALL_AUTHOR_MOD_EXPLAIN}</span>
+			</dd>
+		</dl>
+		<dl>
+			<dt><label for="musicshare_wall_preview">{L_MUSICSHARE_WALL_PREVIEW}:</label></dt>
+			<dd><input type="number" id="musicshare_wall_preview" name="musicshare_wall_preview" value="{MUSICSHARE_WALL_PREVIEW}" min="1" max="20" size="4" class="inputbox" />
+			<br /><span class="explain">{L_MUSICSHARE_WALL_PREVIEW_EXPLAIN}</span></dd>
+		</dl>
+		<dl>
+			<dt><label for="musicshare_wall_follow_only">{L_MUSICSHARE_WALL_FOLLOW_ONLY}:</label></dt>
+			<dd>
+				<label><input type="radio" name="musicshare_wall_follow_only" value="1"<!-- IF MUSICSHARE_WALL_FOLLOW_ONLY --> checked="checked"<!-- ENDIF --> /> {L_YES}</label>
+				<label><input type="radio" name="musicshare_wall_follow_only" value="0"<!-- IF not MUSICSHARE_WALL_FOLLOW_ONLY --> checked="checked"<!-- ENDIF --> /> {L_NO}</label>
+				<br /><span class="explain">{L_MUSICSHARE_WALL_FOLLOW_ONLY_EXPLAIN}</span>
+			</dd>
+		</dl>
+	</fieldset>
+
+	<fieldset>
+		<legend>{L_MS_SET_IMPORT}</legend>
+
+		<dl>
+			<dt><label for="musicshare_auto_import">{L_MUSICSHARE_AUTO_IMPORT}:</label></dt>
+			<dd>
+				<label><input type="radio" name="musicshare_auto_import" value="1"<!-- IF MUSICSHARE_AUTO_IMPORT --> checked="checked"<!-- ENDIF --> /> {L_YES}</label>
+				<label><input type="radio" name="musicshare_auto_import" value="0"<!-- IF not MUSICSHARE_AUTO_IMPORT --> checked="checked"<!-- ENDIF --> /> {L_NO}</label>
+				<br /><span class="explain">{L_MUSICSHARE_AUTO_IMPORT_EXPLAIN}</span>
+			</dd>
+		</dl>
+		<dl>
+			<dt><label>{L_MUSICSHARE_AUTO_FORUMS}:</label></dt>
+			<dd>
+				<div class="musicshare-forum-picker">
+					<!-- BEGIN auto_forums -->
+					<label class="musicshare-forum-row<!-- IF auto_forums.S_PRIVATE --> musicshare-forum-private<!-- ENDIF -->">
+						<input type="checkbox" name="musicshare_auto_forums[]" value="{auto_forums.FORUM_ID}"<!-- IF auto_forums.S_SELECTED --> checked="checked"<!-- ENDIF --> />
+						{auto_forums.FORUM_NAME}
+						<!-- IF auto_forums.S_PRIVATE --><span class="musicshare-forum-warn">{L_MUSICSHARE_FORUM_PRIVATE}</span><!-- ENDIF -->
+					</label>
+					<!-- END auto_forums -->
+				</div>
+				<span class="explain">{L_MUSICSHARE_AUTO_FORUMS_EXPLAIN}</span>
+			</dd>
+		</dl>
+		<dl>
+			<dt><label for="musicshare_auto_pending">{L_MUSICSHARE_AUTO_PENDING}:</label></dt>
+			<dd>
+				<label><input type="radio" name="musicshare_auto_pending" value="1"<!-- IF MUSICSHARE_AUTO_PENDING --> checked="checked"<!-- ENDIF --> /> {L_YES}</label>
+				<label><input type="radio" name="musicshare_auto_pending" value="0"<!-- IF not MUSICSHARE_AUTO_PENDING --> checked="checked"<!-- ENDIF --> /> {L_NO}</label>
+				<br /><span class="explain">{L_MUSICSHARE_AUTO_PENDING_EXPLAIN}</span>
+			</dd>
+		</dl>
+		<dl>
+			<dt><label for="musicshare_attach_import">{L_MUSICSHARE_ATTACH_IMPORT_OPT}:</label></dt>
+			<dd>
+				<label><input type="radio" name="musicshare_attach_import" value="1"<!-- IF MUSICSHARE_ATTACH_IMPORT --> checked="checked"<!-- ENDIF --> /> {L_YES}</label>
+				<label><input type="radio" name="musicshare_attach_import" value="0"<!-- IF not MUSICSHARE_ATTACH_IMPORT --> checked="checked"<!-- ENDIF --> /> {L_NO}</label>
+				<br /><span class="explain">{L_MUSICSHARE_ATTACH_IMPORT_OPT_EXPLAIN}</span>
+			</dd>
+		</dl>
+	</fieldset>
+
+	<fieldset>
+		<legend>{L_MS_SET_TEXT}</legend>
+
+		<dl>
 			<dt><label for="musicshare_bbcode">{L_MUSICSHARE_BBCODE}:</label></dt>
 			<dd>
 				<label><input type="radio" name="musicshare_bbcode" value="1"<!-- IF MUSICSHARE_BBCODE --> checked="checked"<!-- ENDIF --> /> {L_YES}</label>
@@ -136,6 +298,11 @@
 			<dd><input type="number" id="musicshare_description_max" name="musicshare_description_max" value="{MUSICSHARE_DESCRIPTION_MAX}" min="50" max="1000" class="inputbox narrow" />
 			<br /><span class="explain">{L_MUSICSHARE_DESCRIPTION_MAX_EXPLAIN}</span></dd>
 		</dl>
+	</fieldset>
+
+	<fieldset>
+		<legend>{L_MS_SET_VOTES}</legend>
+
 		<dl>
 			<dt><label for="musicshare_votes_enabled">{L_MUSICSHARE_VOTES_ENABLED}:</label></dt>
 			<dd>
@@ -164,6 +331,11 @@
 				<span class="explain">{L_MUSICSHARE_FEED_TITLE_EXPLAIN}</span>
 			</dd>
 		</dl>
+	</fieldset>
+
+	<fieldset>
+		<legend>{L_MS_SET_INDEX}</legend>
+
 		<dl>
 			<dt><label for="musicshare_index_feed">{L_MUSICSHARE_INDEX_FEED}:</label></dt>
 			<dd>
@@ -196,6 +368,11 @@
 			<dd><input type="number" id="musicshare_index_feed_per_user" name="musicshare_index_feed_per_user" value="{MUSICSHARE_INDEX_FEED_PER_USER}" min="0" max="50" class="inputbox narrow" />
 			<br /><span class="explain">{L_MUSICSHARE_INDEX_FEED_PER_USER_EXPLAIN}</span></dd>
 		</dl>
+	</fieldset>
+
+	<fieldset>
+		<legend>{L_MS_SET_ALERTS}</legend>
+
 		<dl>
 			<dt><label for="musicshare_notify_pm">{L_MUSICSHARE_NOTIFY_PM}:</label></dt>
 			<dd>
@@ -242,6 +419,11 @@
 			<dt><label for="musicshare_recent_count">{L_MUSICSHARE_RECENT_COUNT}:</label></dt>
 			<dd><input type="number" id="musicshare_recent_count" name="musicshare_recent_count" value="{MUSICSHARE_RECENT_COUNT}" min="1" max="50" class="inputbox narrow" /></dd>
 		</dl>
+	</fieldset>
+
+	<fieldset>
+		<legend>{L_MS_SET_MODERATION}</legend>
+
 		<dl>
 			<dt><label for="musicshare_require_approval">{L_MUSICSHARE_REQUIRE_APPROVAL}:</label></dt>
 			<dd>

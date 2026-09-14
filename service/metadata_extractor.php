@@ -65,6 +65,10 @@ class metadata_extractor
 			'album'			=> '',
 			'year'			=> 0,
 			'duration'		=> 0,
+			'bitrate'		=> 0,
+			'bitrate_mode'	=> '',
+			'samplerate'	=> 0,
+			'channels'		=> 0,
 			'cover_data'	=> false,
 			'cover_mime'	=> false,
 		);
@@ -81,6 +85,35 @@ class metadata_extractor
 		if (isset($file_info['playtime_seconds']))
 		{
 			$info['duration'] = (int) round($file_info['playtime_seconds']);
+		}
+
+		// Dati tecnici: getID3 li ricava dall'intestazione del file, non
+		// dai tag, quindi ci sono anche quando il file non ha tag.
+		if (!empty($file_info['audio']))
+		{
+			$audio = $file_info['audio'];
+
+			// il bitrate arriva in bit al secondo
+			if (!empty($audio['bitrate']))
+			{
+				$info['bitrate'] = (int) round($audio['bitrate'] / 1000);
+			}
+
+			if (!empty($audio['bitrate_mode']))
+			{
+				$modo = strtolower((string) $audio['bitrate_mode']);
+				$info['bitrate_mode'] = in_array($modo, array('vbr', 'cbr', 'abr'), true) ? $modo : '';
+			}
+
+			if (!empty($audio['sample_rate']))
+			{
+				$info['samplerate'] = (int) $audio['sample_rate'];
+			}
+
+			if (!empty($audio['channels']))
+			{
+				$info['channels'] = (int) $audio['channels'];
+			}
 		}
 
 		if (!empty($file_info['comments']))
@@ -101,5 +134,72 @@ class metadata_extractor
 		}
 
 		return $info;
+	}
+
+	/**
+	 * Riga dei dati tecnici dell'audio, per come si mostra sotto il
+	 * titolo: "320 kbit/s CBR &middot; 44,1 kHz &middot; Stereo".
+	 *
+	 * Le parti mancanti si saltano: i brani caricati prima di questa
+	 * funzione non hanno questi dati finche' non vengono ricaricati, e
+	 * mostrare "0 kbit/s" sarebbe peggio che non mostrare nulla.
+	 *
+	 * Statica e non legata a un oggetto perche' la stessa riga serve
+	 * al controller, al listener del riquadro nell'indice e al Pannello
+	 * di Controllo Utente: tre punti che non condividono altro.
+	 *
+	 * @param array $song
+	 * @param \phpbb\user $user
+	 * @return string
+	 */
+	public static function quality_label(array $song, \phpbb\user $user)
+	{
+		$pezzi = array();
+
+		if (!empty($song['song_bitrate']))
+		{
+			$bitrate = (int) $song['song_bitrate'] . ' ' . $user->lang('MUSICSHARE_KBITS');
+
+			if (!empty($song['song_bitrate_mode']))
+			{
+				$bitrate .= ' ' . strtoupper((string) $song['song_bitrate_mode']);
+			}
+
+			$pezzi[] = $bitrate;
+		}
+
+		if (!empty($song['song_samplerate']))
+		{
+			// 44100 Hz si legge meglio come 44,1 kHz
+			$khz = (int) $song['song_samplerate'] / 1000;
+			$pezzi[] = rtrim(rtrim(number_format($khz, 1, $user->lang('MUSICSHARE_DECIMAL'), ''), '0'), $user->lang('MUSICSHARE_DECIMAL'))
+				. ' ' . $user->lang('MUSICSHARE_KHZ');
+		}
+
+		$canali = (int) (isset($song['song_channels']) ? $song['song_channels'] : 0);
+
+		if ($canali > 0)
+		{
+			// oltre il 5.1 si dice quanti sono e basta, invece di
+			// inventare un nome per ogni combinazione
+			if ($canali === 1)
+			{
+				$pezzi[] = $user->lang('MUSICSHARE_MONO');
+			}
+			else if ($canali === 2)
+			{
+				$pezzi[] = $user->lang('MUSICSHARE_STEREO');
+			}
+			else if ($canali === 6)
+			{
+				$pezzi[] = '5.1';
+			}
+			else
+			{
+				$pezzi[] = $user->lang('MUSICSHARE_CHANNELS_N', $canali);
+			}
+		}
+
+		return implode(' &middot; ', $pezzi);
 	}
 }

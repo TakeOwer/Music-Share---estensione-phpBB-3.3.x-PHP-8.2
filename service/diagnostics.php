@@ -280,6 +280,109 @@ class diagnostics
 	}
 
 	/**
+	 * Elenco dei file su disco che nessun brano rivendica.
+	 *
+	 * Sono di solito residui di caricamenti interrotti o di brani
+	 * eliminati quando il file non era piu' raggiungibile. Occupano
+	 * spazio e basta.
+	 *
+	 * @param int $max quanti percorsi restituire al massimo
+	 * @return array percorsi assoluti
+	 */
+	public function find_orphan_files($max = 500)
+	{
+		$base = $this->storage_helper->get_storage_path();
+		$attesi = array();
+
+		$sql = 'SELECT file_path, cover_path FROM ' . $this->table_prefix . 'musicshare_songs';
+		$result = $this->db->sql_query($sql);
+
+		while ($row = $this->db->sql_fetchrow($result))
+		{
+			if ((string) $row['file_path'] !== '')
+			{
+				$attesi[basename((string) $row['file_path'])] = true;
+			}
+
+			if ((string) $row['cover_path'] !== '')
+			{
+				$attesi[basename((string) $row['cover_path'])] = true;
+			}
+		}
+		$this->db->sql_freeresult($result);
+
+		$orfani = array();
+
+		if (!is_dir($base))
+		{
+			return $orfani;
+		}
+
+		foreach ((array) @scandir($base) as $cartella)
+		{
+			if ($cartella === '.' || $cartella === '..' || !is_dir($base . $cartella))
+			{
+				continue;
+			}
+
+			foreach (array($base . $cartella . '/', $base . $cartella . '/covers/') as $dir)
+			{
+				if (!is_dir($dir))
+				{
+					continue;
+				}
+
+				foreach ((array) @scandir($dir) as $file)
+				{
+					if ($file === '.' || $file === '..' || $file === '.htaccess'
+						|| $file === 'index.html' || is_dir($dir . $file))
+					{
+						continue;
+					}
+
+					if (!isset($attesi[$file]))
+					{
+						$orfani[] = $dir . $file;
+
+						if (count($orfani) >= $max)
+						{
+							return $orfani;
+						}
+					}
+				}
+			}
+		}
+
+		return $orfani;
+	}
+
+	/**
+	 * Rimuove i file orfani.
+	 *
+	 * @param int $max
+	 * @return array rimossi, falliti
+	 */
+	public function delete_orphan_files($max = 500)
+	{
+		$rimossi = 0;
+		$falliti = 0;
+
+		foreach ($this->find_orphan_files($max) as $percorso)
+		{
+			if (@unlink($percorso))
+			{
+				$rimossi++;
+			}
+			else
+			{
+				$falliti++;
+			}
+		}
+
+		return array('rimossi' => $rimossi, 'falliti' => $falliti);
+	}
+
+	/**
 	 * Coerenza fra database e file su disco.
 	 *
 	 * @return array
@@ -535,6 +638,104 @@ class diagnostics
 	}
 
 	/**
+	 * Integrazione con le notifiche push del browser.
+	 *
+	 * Non serve alcun aggancio: l'estensione phpBB Browser Push
+	 * Notifications registra un *metodo* di notifica, e phpBB applica i
+	 * metodi a tutti i tipi registrati. Le nostre tre notifiche passano
+	 * quindi dal push senza una riga di codice dedicata.
+	 *
+	 * Qui si verifica soltanto che sia installata, attiva e configurata:
+	 * e' l'informazione che manca all'amministratore quando si chiede
+	 * perche' le push non arrivino.
+	 *
+	 * @return array
+	 */
+	public function check_webpush()
+	{
+		$out = array();
+
+		$installata = false;
+
+		try
+		{
+			$installata = $this->container->get('ext.manager')->is_enabled('phpbb/webpushnotifications');
+		}
+		catch (\Exception $e)
+		{
+			$installata = false;
+		}
+
+		$out[] = $this->c('MS_CHK_WP_INSTALLED',
+			$installata ? 'installata e attiva' : 'non installata',
+			self::OK,
+			$installata ? '' : 'MS_FIX_WP_INSTALLED');
+
+		if (!$installata)
+		{
+			return $out;
+		}
+
+		// attiva e con le chiavi generate?
+		$attiva = !empty($this->config['wpn_webpush_enable']);
+		$chiavi = !empty($this->config['wpn_webpush_vapid_public'])
+			&& !empty($this->config['wpn_webpush_vapid_private']);
+
+		$out[] = $this->c('MS_CHK_WP_ENABLED',
+			$attiva ? 'attive' : 'DISATTIVATE',
+			$attiva ? self::OK : self::AVVISO,
+			'MS_FIX_WP_ENABLED');
+
+		$out[] = $this->c('MS_CHK_WP_KEYS',
+			$chiavi ? 'presenti' : 'MANCANTI',
+			$chiavi ? self::OK : self::ERRORE,
+			'MS_FIX_WP_KEYS');
+
+		$predefinito = !empty($this->config['wpn_webpush_method_enabled']);
+
+		$out[] = $this->c('MS_CHK_WP_DEFAULT',
+			$predefinito ? 'si' : 'no',
+			$predefinito ? self::OK : self::AVVISO,
+			'MS_FIX_WP_DEFAULT');
+
+		// quanti utenti hanno davvero un dispositivo registrato
+		$tools = new \phpbb\db\tools\tools($this->db);
+		$tabella = $this->table_prefix . 'wpn_push_subscriptions';
+
+		if ($tools->sql_table_exists($tabella))
+		{
+			$sql = 'SELECT COUNT(DISTINCT user_id) AS quanti FROM ' . $tabella;
+			$result = $this->db->sql_query($sql);
+			$row = $this->db->sql_fetchrow($result);
+			$this->db->sql_freeresult($result);
+
+			$quanti = (int) $row['quanti'];
+
+			$out[] = $this->c('MS_CHK_WP_SUBS', (string) $quanti,
+				$quanti > 0 ? self::OK : self::AVVISO,
+				'MS_FIX_WP_SUBS');
+		}
+
+		// quanti fra i destinatari dei nostri avvisi hanno spento il push
+		$sql = 'SELECT COUNT(*) AS quanti
+			FROM ' . $this->table_prefix . "user_notifications
+			WHERE item_type = 'salvocortesiano.musicshare.notification.type.song_new'
+				AND method = 'notification.method.phpbb.wpn.webpush'
+				AND notify = 0";
+		$result = $this->db->sql_query($sql);
+		$row = $this->db->sql_fetchrow($result);
+		$this->db->sql_freeresult($result);
+
+		$spenti = (int) $row['quanti'];
+
+		$out[] = $this->c('MS_CHK_WP_OPTOUT', (string) $spenti,
+			self::OK,
+			$spenti > 0 ? 'MS_FIX_WP_OPTOUT' : '', array($spenti));
+
+		return $out;
+	}
+
+	/**
 	 * Funzioni facoltative e loro configurazione.
 	 *
 	 * @return array
@@ -576,6 +777,56 @@ class diagnostics
 			$approvazione ? 'richiesta' : 'non richiesta',
 			$approvazione ? self::OK : self::AVVISO,
 			'MS_FIX_APPROVAL');
+
+		// registro dei download: c'e' e sta registrando?
+		$tools_dl = new \phpbb\db\tools\tools($this->db);
+		$tab_dl = $this->table_prefix . 'musicshare_downloads';
+
+		if (!$tools_dl->sql_table_exists($tab_dl))
+		{
+			$out[] = $this->c('MS_CHK_DL_LOG', 'tabella assente', self::ERRORE, 'MS_FIX_DL_LOG_MISSING');
+		}
+		else
+		{
+			$sql = 'SELECT COUNT(*) AS quanti FROM ' . $tab_dl;
+			$result = $this->db->sql_query($sql);
+			$riga = $this->db->sql_fetchrow($result);
+			$this->db->sql_freeresult($result);
+
+			$quanti = (int) $riga['quanti'];
+
+			$ore = isset($this->config['musicshare_play_interval'])
+				? (int) $this->config['musicshare_play_interval'] : 12;
+
+			$out[] = $this->c('MS_CHK_DL_LOG',
+				$quanti . ' registrati, intervallo minimo ' . $ore . ' ore',
+				self::OK,
+				$quanti === 0 ? 'MS_FIX_DL_LOG_EMPTY' : '');
+		}
+
+		// argomenti di discussione: quanti brani ne hanno uno
+		if (!empty($this->config['musicshare_topic_enabled']))
+		{
+			$sql = 'SELECT COUNT(*) AS totale,
+					SUM(CASE WHEN topic_id > 0 THEN 1 ELSE 0 END) AS con_argomento
+				FROM ' . $this->table_prefix . 'musicshare_songs';
+			$result = $this->db->sql_query($sql);
+			$riga = $this->db->sql_fetchrow($result);
+			$this->db->sql_freeresult($result);
+
+			$totale = (int) $riga['totale'];
+			$con = (int) $riga['con_argomento'];
+
+			$out[] = $this->c('MS_CHK_TOPICS',
+				$con . ' su ' . $totale,
+				($totale === 0 || $con > 0) ? self::OK : self::AVVISO,
+				($con < $totale) ? 'MS_FIX_TOPICS' : '',
+				array($totale - $con));
+		}
+		else
+		{
+			$out[] = $this->c('MS_CHK_TOPICS', 'funzione disattivata', self::OK);
+		}
 
 		// brani in attesa da troppo tempo
 		$sql = 'SELECT COUNT(*) AS quanti FROM ' . $this->table_prefix . 'musicshare_songs

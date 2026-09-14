@@ -43,6 +43,12 @@ class main_module
 			$this->tpl_name = 'musicshare_moderate';
 			$this->handle_moderate($phpbb_container, $request, $template, $user);
 		}
+		else if ($mode === 'tools')
+		{
+			$this->page_title = 'ACP_MUSICSHARE_TOOLS';
+			$this->tpl_name = 'musicshare_tools';
+			$this->handle_tools($phpbb_container, $request, $template, $user, $config);
+		}
 		else if ($mode === 'maintenance')
 		{
 			$this->page_title = 'ACP_MUSICSHARE_MAINTENANCE';
@@ -630,6 +636,45 @@ class main_module
 		));
 	}
 
+	/**
+	 * Forum leggibili dagli ospiti, cioe' pubblici a tutti gli effetti.
+	 *
+	 * Serve solo a segnalare nella scheda quali sezioni sono riservate:
+	 * importare da li' porterebbe i brani in una libreria che invece e'
+	 * visibile a chiunque abbia accesso alla sezione Musica.
+	 *
+	 * @param \phpbb\db\driver\driver_interface $db
+	 * @return array
+	 */
+	protected function get_guest_readable_forums($db)
+	{
+		$sql = 'SELECT DISTINCT a.forum_id
+			FROM ' . ACL_GROUPS_TABLE . ' a, ' . GROUPS_TABLE . ' g, ' . ACL_OPTIONS_TABLE . ' o
+			WHERE g.group_id = a.group_id
+				AND g.group_name = ' . "'GUESTS'" . '
+				AND (
+					(a.auth_option_id = o.auth_option_id AND o.auth_option = ' . "'f_read'" . ' AND a.auth_setting = 1)
+					OR EXISTS (
+						SELECT 1 FROM ' . ACL_ROLES_DATA_TABLE . ' rd, ' . ACL_OPTIONS_TABLE . ' o2
+						WHERE rd.role_id = a.auth_role_id
+							AND o2.auth_option_id = rd.auth_option_id
+							AND o2.auth_option = ' . "'f_read'" . '
+							AND rd.auth_setting = 1
+					)
+				)';
+		$result = $db->sql_query($sql);
+
+		$out = array();
+
+		while ($row = $db->sql_fetchrow($result))
+		{
+			$out[] = (int) $row['forum_id'];
+		}
+		$db->sql_freeresult($result);
+
+		return $out;
+	}
+
 	protected function handle_settings($phpbb_container, $request, $template, $user, $config)
 	{
 		global $db;
@@ -677,6 +722,28 @@ class main_module
 			$config->set('musicshare_votes_enabled', $request->variable('musicshare_votes_enabled', false) ? 1 : 0);
 			$config->set('musicshare_descriptions', $request->variable('musicshare_descriptions', false) ? 1 : 0);
 			$config->set('musicshare_bbcode', $request->variable('musicshare_bbcode', false) ? 1 : 0);
+			$config->set('musicshare_attach_import', $request->variable('musicshare_attach_import', false) ? 1 : 0);
+			$config->set('musicshare_show_license', $request->variable('musicshare_show_license', false) ? 1 : 0);
+			$config->set('musicshare_show_bpm', $request->variable('musicshare_show_bpm', false) ? 1 : 0);
+			$config->set('musicshare_follows_enabled', $request->variable('musicshare_follows_enabled', false) ? 1 : 0);
+			$config->set('musicshare_plays_keep_days', max(0, min(3650, $request->variable('musicshare_plays_keep_days', 90))));
+			$config->set('musicshare_play_interval', max(0, min(168, $request->variable('musicshare_play_interval', 12))));
+			$config->set('musicshare_auto_import', $request->variable('musicshare_auto_import', false) ? 1 : 0);
+			$config->set('musicshare_auto_pending', $request->variable('musicshare_auto_pending', false) ? 1 : 0);
+
+			$forum_scelti = array_filter(array_map('intval', $request->variable('musicshare_auto_forums', array(0))));
+			$phpbb_container->get('config_text')->set('musicshare_auto_forums', implode(',', $forum_scelti));
+
+			$config->set('musicshare_topic_enabled', $request->variable('musicshare_topic_enabled', false) ? 1 : 0);
+			$config->set('musicshare_topic_forum', (int) $request->variable('musicshare_topic_forum', 0));
+			$phpbb_container->get('config_text')->set('musicshare_topic_title',
+				$request->variable('musicshare_topic_title', '', true));
+			$phpbb_container->get('config_text')->set('musicshare_topic_message',
+				$request->variable('musicshare_topic_message', '', true));
+			$config->set('musicshare_wall_enabled', $request->variable('musicshare_wall_enabled', false) ? 1 : 0);
+			$config->set('musicshare_wall_preview', max(1, min(20, $request->variable('musicshare_wall_preview', 5))));
+			$config->set('musicshare_wall_follow_only', $request->variable('musicshare_wall_follow_only', false) ? 1 : 0);
+			$config->set('musicshare_wall_author_moderates', $request->variable('musicshare_wall_author_moderates', false) ? 1 : 0);
 			$config->set('musicshare_cleanup_enabled', $request->variable('musicshare_cleanup_enabled', false) ? 1 : 0);
 			$config->set('musicshare_cleanup_days', max(0, min(365, $request->variable('musicshare_cleanup_days', 30))));
 			$config->set('musicshare_description_max', max(50, min(1000, $request->variable('musicshare_description_max', 300))));
@@ -872,6 +939,63 @@ class main_module
 			'MUSICSHARE_VOTES_ENABLED'	=> !isset($config['musicshare_votes_enabled']) || (bool) $config['musicshare_votes_enabled'],
 			'MUSICSHARE_DESCRIPTIONS'	=> !isset($config['musicshare_descriptions']) || (bool) $config['musicshare_descriptions'],
 			'MUSICSHARE_BBCODE'			=> !isset($config['musicshare_bbcode']) || (bool) $config['musicshare_bbcode'],
+			'MUSICSHARE_ATTACH_IMPORT'	=> !isset($config['musicshare_attach_import']) || (bool) $config['musicshare_attach_import'],
+			'MUSICSHARE_SHOW_LICENSE'	=> !isset($config['musicshare_show_license']) || (bool) $config['musicshare_show_license'],
+			'MUSICSHARE_SHOW_BPM'		=> !isset($config['musicshare_show_bpm']) || (bool) $config['musicshare_show_bpm'],
+			'MUSICSHARE_FOLLOWS_ENABLED'	=> !isset($config['musicshare_follows_enabled']) || (bool) $config['musicshare_follows_enabled'],
+			'MUSICSHARE_PLAYS_KEEP_DAYS'	=> isset($config['musicshare_plays_keep_days']) ? (int) $config['musicshare_plays_keep_days'] : 90,
+			'MUSICSHARE_PLAY_INTERVAL'	=> isset($config['musicshare_play_interval']) ? (int) $config['musicshare_play_interval'] : 12,
+			'MUSICSHARE_AUTO_IMPORT'	=> !empty($config['musicshare_auto_import']),
+			'MUSICSHARE_AUTO_PENDING'	=> !isset($config['musicshare_auto_pending']) || (bool) $config['musicshare_auto_pending'],
+			'MUSICSHARE_TOPIC_ENABLED'	=> !empty($config['musicshare_topic_enabled']),
+			'MUSICSHARE_WALL_ENABLED'	=> !empty($config['musicshare_wall_enabled']),
+			'MUSICSHARE_WALL_FOLLOW_ONLY'	=> !empty($config['musicshare_wall_follow_only']),
+			'MUSICSHARE_WALL_AUTHOR_MOD'	=> !empty($config['musicshare_wall_author_moderates']),
+			'MUSICSHARE_WALL_PREVIEW'	=> isset($config['musicshare_wall_preview']) ? (int) $config['musicshare_wall_preview'] : 5,
+			'MUSICSHARE_TOPIC_TITLE'	=> (string) $phpbb_container->get('config_text')->get('musicshare_topic_title'),
+			'MUSICSHARE_TOPIC_MESSAGE'	=> (string) $phpbb_container->get('config_text')->get('musicshare_topic_message'),
+		));
+
+		// Elenco dei forum con l'indicazione di quelli non leggibili da
+		// tutti: importare da una sezione riservata renderebbe quei brani
+		// ascoltabili da chiunque, ed e' bene che si veda a colpo d'occhio.
+		$scelti = array_filter(array_map('intval',
+			explode(',', (string) $phpbb_container->get('config_text')->get('musicshare_auto_forums'))));
+
+		$leggibili_ospiti = $this->get_guest_readable_forums($db);
+
+		$sql = 'SELECT forum_id, forum_name, forum_type, parent_id, left_id
+			FROM ' . FORUMS_TABLE . '
+			ORDER BY left_id ASC';
+		$result = $db->sql_query($sql);
+
+		while ($row = $db->sql_fetchrow($result))
+		{
+			if ((int) $row['forum_type'] !== FORUM_POST)
+			{
+				continue;
+			}
+
+			$fid = (int) $row['forum_id'];
+
+			$template->assign_block_vars('auto_forums', array(
+				'FORUM_ID'		=> $fid,
+				'FORUM_NAME'	=> $row['forum_name'],
+				'S_SELECTED'	=> in_array($fid, $scelti, true),
+				'S_PRIVATE'		=> !in_array($fid, $leggibili_ospiti, true),
+			));
+
+			// stesso elenco, per scegliere dove aprire gli argomenti
+			$template->assign_block_vars('topic_forums', array(
+				'FORUM_ID'		=> $fid,
+				'FORUM_NAME'	=> $row['forum_name'],
+				'S_SELECTED'	=> ($fid === (int) $config['musicshare_topic_forum']),
+			));
+
+		}
+		$db->sql_freeresult($result);
+
+		$template->assign_vars(array(
 			'MUSICSHARE_CLEANUP_ENABLED'	=> !isset($config['musicshare_cleanup_enabled']) || (bool) $config['musicshare_cleanup_enabled'],
 			'MUSICSHARE_CLEANUP_DAYS'	=> isset($config['musicshare_cleanup_days']) ? (int) $config['musicshare_cleanup_days'] : 30,
 			'MUSICSHARE_CLEANUP_COUNT'	=> $phpbb_container->get('salvocortesiano.musicshare.notification_cleaner')->count_removable(0),
@@ -923,6 +1047,111 @@ class main_module
 	 * Scheda "Manutenzione e verifiche": esegue tutti i controlli e
 	 * mostra, accanto a ciascuno, il rimedio quando qualcosa non va.
 	 */
+	/**
+	 * Scheda "Strumenti": rifa' i conti dei contatori a partire dai dati
+	 * di origine, e ripulisce i riferimenti rimasti appesi.
+	 */
+	protected function handle_tools($phpbb_container, $request, $template, $user, $config)
+	{
+		$calc = $phpbb_container->get('salvocortesiano.musicshare.recalculator');
+		add_form_key('musicshare_tools');
+
+		$azioni = array(
+			'fix_votes'			=> 'MS_TOOLS_VOTES_DONE',
+			'fix_downloads'		=> 'MS_TOOLS_DOWNLOADS_DONE',
+			'fix_topics'		=> 'MS_TOOLS_TOPICS_DONE',
+			'fix_orphans'		=> 'MS_TOOLS_ORPHANS_DONE',
+		);
+
+		// Rilettura dei dati tecnici: sta fuori dal ciclo perche' il suo
+		// messaggio riporta tre numeri (letti, saltati, rimasti) invece
+		// di uno solo, e perche' lavora a blocchi.
+		if ($request->is_set_post('fix_quality'))
+		{
+			if (!check_form_key('musicshare_tools'))
+			{
+				trigger_error('FORM_INVALID' . adm_back_link($this->u_action), E_USER_WARNING);
+			}
+
+			$esito = $calc->fill_quality(25);
+
+			$phpbb_container->get('cache.driver')->destroy(
+				\salvocortesiano\musicshare\event\listener::feed_cache_key_from_config($config)
+			);
+
+			trigger_error($user->lang('MS_TOOLS_QUALITY_DONE',
+				(int) $esito['updated'], (int) $esito['skipped'], (int) $esito['left'])
+				. adm_back_link($this->u_action));
+		}
+
+		foreach ($azioni as $campo => $messaggio)
+		{
+			if (!$request->is_set_post($campo))
+			{
+				continue;
+			}
+
+			if (!check_form_key('musicshare_tools'))
+			{
+				trigger_error('FORM_INVALID' . adm_back_link($this->u_action), E_USER_WARNING);
+			}
+
+			switch ($campo)
+			{
+				case 'fix_votes':
+					$quanti = $calc->fix_votes();
+				break;
+
+				case 'fix_downloads':
+					$quanti = $calc->fix_downloads();
+				break;
+
+				case 'fix_topics':
+					$quanti = $calc->fix_stale_topics();
+				break;
+
+				default:
+					$quanti = $calc->fix_orphan_rows();
+				break;
+			}
+
+			// i contatori compaiono nel riquadro, che è tenuto in cache
+			$phpbb_container->get('cache.driver')->destroy(
+				\salvocortesiano\musicshare\event\listener::feed_cache_key_from_config($config)
+			);
+
+			trigger_error($user->lang($messaggio, (int) $quanti) . adm_back_link($this->u_action));
+		}
+
+		$orfane = $calc->count_orphan_rows();
+		$tot = $calc->get_totals();
+
+		$template->assign_vars(array(
+			'U_ACTION'			=> $this->u_action,
+			'MS_T_SONGS'		=> $tot['songs'],
+			'MS_T_APPROVED'		=> $tot['approved'],
+			'MS_T_PENDING'		=> $tot['pending'],
+			'MS_T_UPLOADERS'	=> $tot['uploaders'],
+			'MS_T_SIZE'			=> round($tot['size'] / 1048576, 1),
+			'MS_T_PLAYS'		=> $tot['plays'],
+			'MS_T_DOWNLOADS'	=> $tot['downloads'],
+			'MS_T_LIKES'		=> $tot['likes'],
+			'MS_T_DISLIKES'		=> $tot['dislikes'],
+			'MS_T_TOPICS'		=> $tot['with_topic'],
+			'MS_T_VOTES'		=> $tot['votes'],
+			'MS_T_PLAYS_LOG'	=> $tot['plays_log'],
+			'MS_T_DOWNLOADS_LOG'	=> $tot['downloads_log'],
+			'MS_T_PLAYLISTS'	=> $tot['playlists'],
+			'MS_T_GENRES'		=> $tot['genres'],
+			'MS_T_FOLLOWS'		=> $tot['follows'],
+			'MS_WRONG_VOTES'	=> $calc->count_wrong_votes(),
+			'MS_WRONG_DOWNLOADS'	=> $calc->count_wrong_downloads(),
+			'MS_STALE_TOPICS'	=> $calc->count_stale_topics(),
+			'MS_ORPHAN_ROWS'	=> array_sum($orfane),
+			'MS_MISSING_QUALITY'	=> $calc->count_missing_quality(),
+		));
+	}
+
 	protected function handle_maintenance($phpbb_container, $request, $template, $user, $config)
 	{
 		$diag = $phpbb_container->get('salvocortesiano.musicshare.diagnostics');
@@ -941,6 +1170,22 @@ class main_module
 			$config->set('musicshare_cleanup_last', time());
 
 			trigger_error($user->lang('MUSICSHARE_CLEANUP_DONE', (int) $rimosse) . adm_back_link($this->u_action));
+		}
+
+		// Rimozione dei file che nessun brano rivendica
+		if ($request->is_set_post('clean_orphans'))
+		{
+			if (!check_form_key('musicshare_maintenance'))
+			{
+				trigger_error('FORM_INVALID' . adm_back_link($this->u_action), E_USER_WARNING);
+			}
+
+			$esito = $diag->delete_orphan_files(500);
+
+			trigger_error(
+				$user->lang('MS_ORPHANS_DONE', (int) $esito['rimossi'], (int) $esito['falliti'])
+				. adm_back_link($this->u_action)
+			);
 		}
 
 		// Rimozione totale: comprende le notifiche non ancora lette,
@@ -970,6 +1215,7 @@ class main_module
 			'MS_SEC_DB'			=> $diag->check_database(),
 			'MS_SEC_INTEGRITY'	=> $diag->check_integrity(),
 			'MS_SEC_NOTIF'		=> $diag->check_notifications(),
+			'MS_SEC_WEBPUSH'	=> $diag->check_webpush(),
 			'MS_SEC_FEATURES'	=> $diag->check_features(),
 		);
 
@@ -1011,6 +1257,7 @@ class main_module
 			'MS_TOT_ERROR'	=> $totali['errore'],
 			'S_ALL_GOOD'	=> ($totali['avviso'] === 0 && $totali['errore'] === 0),
 			'MS_CLEANUP_COUNT'	=> $cleaner->count_removable(0),
+			'MS_ORPHAN_COUNT'	=> count($diag->find_orphan_files(500)),
 			'MS_NOTIF_TOTAL'	=> $cleaner->count_all(),
 		));
 	}

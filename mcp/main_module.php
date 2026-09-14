@@ -26,6 +26,7 @@ class main_module
 	public function main($id, $mode)
 	{
 		global $phpbb_container, $user, $template, $request, $auth, $config;
+		global $phpbb_root_path, $phpEx;
 
 		$user->add_lang_ext('salvocortesiano/musicshare', 'common');
 
@@ -38,6 +39,9 @@ class main_module
 		$storage_helper = $phpbb_container->get('salvocortesiano.musicshare.storage_helper');
 		$notifier = $phpbb_container->get('salvocortesiano.musicshare.notifier');
 		$controller_helper = $phpbb_container->get('controller.helper');
+		$contact_helper = $phpbb_container->get('salvocortesiano.musicshare.contact_helper');
+
+		add_form_key('mcp_musicshare');
 
 		$this->tpl_name = 'mcp_musicshare';
 		$this->page_title = ($mode === 'pending') ? 'MCP_MUSICSHARE_PENDING' : 'MCP_MUSICSHARE_SONGS';
@@ -49,6 +53,18 @@ class main_module
 		// puo' servire dalla cache l'elenco precedente, in cui il brano
 		// appena approvato risulta ancora in attesa
 		$ritorno = $this->u_action . '&amp;t=' . time();
+
+		// Azione su piu' brani insieme: con la paginazione a 20, smaltire
+		// trenta brani in attesa significava trenta clic e trenta
+		// conferme.
+		if ($request->is_set_post('bulk_action'))
+		{
+			$this->handle_bulk(
+				$request->variable('bulk_action', ''),
+				array_filter(array_map('intval', $request->variable('song_ids', array(0)))),
+				$ritorno, $song_repository, $storage_helper, $notifier, $user, $request
+			);
+		}
 
 		if ($action !== '' && $song_id)
 		{
@@ -92,11 +108,18 @@ class main_module
 				'UPLOAD_DATE'	=> $user->format_date((int) $song['upload_time']),
 				'FILE_SIZE'		=> round($song['file_size'] / 1048576, 2),
 				'PLAY_COUNT'	=> (int) $song['play_count'],
+				'DOWNLOAD_COUNT'	=> isset($song['download_count']) ? (int) $song['download_count'] : 0,
 				'S_APPROVED'	=> (bool) $song['song_approved'],
 				'S_RECOGNIZED'	=> !empty($song['recognized']),
 				'RECOGNIZED_INFO'	=> isset($song['recognized_info']) ? (string) $song['recognized_info'] : '',
 				'U_SONG'		=> $controller_helper->route('salvocortesiano_musicshare_user',
 					array('user_id' => (int) $song['user_id'])),
+				'U_CONTACT'		=> $contact_helper->get_pm_url((int) $song['user_id'],
+					isset($song['user_allow_pm']) ? (int) $song['user_allow_pm'] : null,
+					(int) $song['song_id']),
+				'U_TOPIC'		=> !empty($song['topic_id'])
+					? append_sid($phpbb_root_path . 'viewtopic.' . $phpEx, 't=' . (int) $song['topic_id'])
+					: '',
 				'U_APPROVE'		=> $this->u_action . '&amp;action=approve&amp;song_id=' . (int) $song['song_id'],
 				'U_UNAPPROVE'	=> $this->u_action . '&amp;action=unapprove&amp;song_id=' . (int) $song['song_id'],
 				'U_DELETE'		=> $this->u_action . '&amp;action=delete&amp;song_id=' . (int) $song['song_id'],
@@ -119,6 +142,79 @@ class main_module
 			// qui rende il template indipendente da quel dettaglio
 			'PAGE_TITLE'	=> $user->lang($this->page_title),
 		));
+	}
+
+	/**
+	 * Approva o rifiuta piu' brani in una volta sola.
+	 *
+	 * Ogni brano viene comunque valutato singolarmente: quelli gia' nello
+	 * stato richiesto vengono saltati senza inviare all'autore un secondo
+	 * avviso, e quelli spariti nel frattempo non fanno fallire il resto.
+	 *
+	 * @return void
+	 */
+	protected function handle_bulk($azione, array $ids, $ritorno, $song_repository, $storage_helper, $notifier, $user, $request)
+	{
+		if (!check_form_key('mcp_musicshare'))
+		{
+			trigger_error($user->lang('FORM_INVALID') . $this->back($ritorno), E_USER_WARNING);
+		}
+
+		if (empty($ids))
+		{
+			trigger_error($user->lang('MCP_MUSICSHARE_NONE_SELECTED') . $this->back($ritorno), E_USER_WARNING);
+		}
+
+		// un tetto per non tenere occupata la pagina troppo a lungo
+		$ids = array_slice($ids, 0, 100);
+
+		$fatti = 0;
+		$saltati = 0;
+
+		foreach ($ids as $id)
+		{
+			$song = $song_repository->get_song($id);
+
+			if (!$song)
+			{
+				$saltati++;
+				continue;
+			}
+
+			if ($azione === 'approve')
+			{
+				if (!empty($song['song_approved']))
+				{
+					$saltati++;
+					continue;
+				}
+
+				$song_repository->approve_song($id);
+				$notifier->song_approved($song);
+				$notifier->song_new($song);
+				$fatti++;
+			}
+			else if ($azione === 'unapprove')
+			{
+				if (empty($song['song_approved']))
+				{
+					$saltati++;
+					continue;
+				}
+
+				$song_repository->set_approved($id, false);
+				$notifier->song_rejected($song);
+				$fatti++;
+			}
+			else
+			{
+				$saltati++;
+			}
+		}
+
+		trigger_error(
+			$user->lang('MCP_MUSICSHARE_BULK_DONE', (int) $fatti, (int) $saltati) . $this->back($ritorno)
+		);
 	}
 
 	/**

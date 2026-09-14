@@ -89,3 +89,45 @@ salvocortesiano_musicshare_uploaders:
 salvocortesiano_musicshare_ajax_embed:
     path: /musicshare/ajax/embed
     defaults: { _controller: salvocortesiano.musicshare.controller.ajax:embed }
+
+salvocortesiano_musicshare_import:
+    path: /musicshare/import/{attach_id}
+    defaults: { _controller: salvocortesiano.musicshare.controller.import:handle }
+    requirements:
+        attach_id: \d+
+
+salvocortesiano_musicshare_publish:
+    path: /musicshare/publish/{song_id}
+    defaults: { _controller: salvocortesiano.musicshare.controller.main:publish }
+    requirements:
+        song_id: \d+
+
+salvocortesiano_musicshare_liked:
+    path: /musicshare/liked
+    defaults: { _controller: salvocortesiano.musicshare.controller.main:liked }
+
+salvocortesiano_musicshare_follow:
+    path: /musicshare/follow/{author_id}
+    defaults: { _controller: salvocortesiano.musicshare.controller.main:follow }
+    requirements:
+        author_id: \d+
+
+salvocortesiano_musicshare_following:
+    path: /musicshare/following
+    defaults: { _controller: salvocortesiano.musicshare.controller.main:following }
+
+salvocortesiano_musicshare_follows:
+    path: /musicshare/follows
+    defaults: { _controller: salvocortesiano.musicshare.controller.main:follows }
+
+salvocortesiano_musicshare_wall:
+    path: /musicshare/wall/{author_id}
+    defaults: { _controller: salvocortesiano.musicshare.controller.main:wall }
+    requirements:
+        author_id: \d+
+    methods: [POST]
+
+salvocortesiano_musicshare_ajax_wall_react:
+    path: /musicshare/ajax/wall-react
+    defaults: { _controller: salvocortesiano.musicshare.controller.ajax:wall_react }
+    methods: [POST]

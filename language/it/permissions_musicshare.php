@@ -29,4 +29,8 @@ $lang = array_merge($lang, [
 	'ACL_U_MUSICSHARE_FEED'			=> 'Può vedere il riquadro dei brani recenti',
 
 	'ACL_U_MUSICSHARE_NOTIFY'		=> 'Riceve la notifica dei nuovi brani',
+
+	'ACL_U_MUSICSHARE_WALL_POST'	=> 'Può scrivere sulle bacheche degli autori',
+	'ACL_U_MUSICSHARE_WALL_EDIT'	=> 'Può modificare ed eliminare i propri commenti in bacheca',
+	'ACL_M_MUSICSHARE_WALL'			=> 'Può moderare i commenti in bacheca di tutti',
 ]);

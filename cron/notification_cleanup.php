@@ -24,14 +24,17 @@ class notification_cleanup extends \phpbb\cron\task\base
 
 	protected $config;
 	protected $cleaner;
+	protected $song_repository;
 
 	public function __construct(
 		\phpbb\config\config $config,
-		\salvocortesiano\musicshare\service\notification_cleaner $cleaner
+		\salvocortesiano\musicshare\service\notification_cleaner $cleaner,
+		\salvocortesiano\musicshare\repository\song_repository $song_repository
 	)
 	{
 		$this->config = $config;
 		$this->cleaner = $cleaner;
+		$this->song_repository = $song_repository;
 	}
 
 	/**
@@ -60,6 +63,20 @@ class notification_cleanup extends \phpbb\cron\task\base
 		// visita di un utente, non deve allungarne l'attesa. Quel che
 		// resta viene ripreso al ciclo successivo.
 		$this->cleaner->clean(null, 20);
+
+		// Anche il registro degli ascolti va contenuto: serve alle
+		// classifiche a periodo, quindi oltre la finestra piu' lunga
+		// diventa solo peso. Il contatore complessivo del brano non
+		// viene toccato.
+		$giorni = isset($this->config['musicshare_plays_keep_days'])
+			? (int) $this->config['musicshare_plays_keep_days']
+			: 90;
+
+		if ($giorni > 0)
+		{
+			$this->song_repository->purge_old_plays($giorni, 10);
+			$this->song_repository->purge_old_downloads($giorni, 10);
+		}
 
 		$this->config->set('musicshare_cleanup_last', time());
 	}

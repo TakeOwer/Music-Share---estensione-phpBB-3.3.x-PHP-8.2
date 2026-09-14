@@ -60,10 +60,16 @@ class stream
 			return new Response('Not found', 404);
 		}
 
-		// gli ascolti di prova dell'autore non gonfiano il contatore
-		if ((int) $song['user_id'] !== (int) $this->user->data['user_id'])
+		if ($this->should_count_play($song))
 		{
 			$this->song_repository->increment_play_count($song_id);
+
+			// riga datata, per le classifiche a periodo
+			$this->song_repository->log_play(
+				$song_id,
+				(int) $this->user->data['user_id'],
+				(string) $this->user->data['session_id']
+			);
 
 			// il riquadro dei brani recenti mostra il contatore ed è tenuto
 			// in cache: senza invalidarla resterebbe fermo fino alla
@@ -111,6 +117,36 @@ class stream
 		if (!is_file($file))
 		{
 			return new Response('Not found', 404);
+		}
+
+		// Conteggio del download.
+		//
+		// Si conta la persona, non la richiesta: un gestore di download
+		// apre piu' connessioni in parallelo sullo stesso file, e
+		// contando le richieste HTTP un unico download ne valeva cinque.
+		// Gli scaricamenti dell'autore sul proprio brano non contano.
+		if ((int) $song['user_id'] !== (int) $this->user->data['user_id']
+			&& !$this->is_partial_request())
+		{
+			$ore = isset($this->config['musicshare_play_interval'])
+				? (int) $this->config['musicshare_play_interval']
+				: 12;
+
+			$contato = $this->song_repository->log_download(
+				$song_id,
+				(int) $this->user->data['user_id'],
+				(string) $this->user->data['session_id'],
+				$ore
+			);
+
+			if ($contato)
+			{
+				// il riquadro dei brani recenti mostra i contatori ed è
+				// tenuto in cache: senza invalidarla resterebbe fermo
+				$this->cache->destroy(
+					\salvocortesiano\musicshare\event\listener::feed_cache_key_from_config($this->config)
+				);
+			}
 		}
 
 		$name = $song['song_artist'] !== ''
@@ -201,6 +237,73 @@ class stream
 	 * Invia un file supportando le richieste Range, necessario per il seek
 	 * nella barra di avanzamento del player HTML5 anche su file grandi.
 	 */
+	/**
+	 * Questa richiesta va contata come un ascolto?
+	 *
+	 * Il contatore misurava le richieste HTTP, non gli ascolti. Ogni
+	 * spostamento nella barra di avanzamento fa chiedere al browser un
+	 * altro pezzo del file, e ogni pezzo valeva un ascolto in piu': un
+	 * utente che ascoltava un brano una volta sola, spostandosi tre
+	 * volte, ne generava quattro.
+	 *
+	 * Si contano quindi solo le richieste iniziali, e non piu' di una
+	 * per persona e per brano entro l'intervallo scelto in ACP.
+	 *
+	 * @param array $song
+	 * @return bool
+	 */
+	/**
+	 * La richiesta e' la continuazione di un trasferimento gia' avviato?
+	 *
+	 * Vale sia per lo spostamento nella barra del lettore sia per le
+	 * connessioni parallele dei gestori di download.
+	 *
+	 * @return bool
+	 */
+	protected function is_partial_request()
+	{
+		$range = (string) $this->request->server('HTTP_RANGE', '');
+
+		if ($range !== '' && preg_match('/bytes=(\d*)-/', $range, $m))
+		{
+			return (($m[1] === '') ? 0 : (int) $m[1]) > 0;
+		}
+
+		return false;
+	}
+
+	protected function should_count_play(array $song)
+	{
+		// gli ascolti di prova dell'autore non gonfiano il contatore
+		if ((int) $song['user_id'] === (int) $this->user->data['user_id'])
+		{
+			return false;
+		}
+
+		// Richiesta parziale che riparte da un punto diverso dall'inizio:
+		// e' la continuazione di un ascolto gia' contato, non uno nuovo.
+		if ($this->is_partial_request())
+		{
+			return false;
+		}
+
+		$ore = isset($this->config['musicshare_play_interval'])
+			? (int) $this->config['musicshare_play_interval']
+			: 12;
+
+		if ($ore <= 0)
+		{
+			return true;
+		}
+
+		return !$this->song_repository->played_recently(
+			(int) $song['song_id'],
+			(int) $this->user->data['user_id'],
+			(string) $this->user->data['session_id'],
+			$ore
+		);
+	}
+
 	protected function send_file($file, $mime, $support_range)
 	{
 		$size = filesize($file);

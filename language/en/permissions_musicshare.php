@@ -29,4 +29,8 @@ $lang = array_merge($lang, [
 	'ACL_U_MUSICSHARE_FEED'			=> 'Can see the recent songs box',
 
 	'ACL_U_MUSICSHARE_NOTIFY'		=> 'Receives notifications of new songs',
+
+	'ACL_U_MUSICSHARE_WALL_POST'	=> 'Can post on author walls',
+	'ACL_U_MUSICSHARE_WALL_EDIT'	=> 'Can edit and delete own wall comments',
+	'ACL_M_MUSICSHARE_WALL'			=> 'Can moderate everyone\'s wall comments',
 ]);

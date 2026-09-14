@@ -1,0 +1,101 @@
+<!-- INCLUDE overall_header.html -->
+
+<a id="maincontent"></a>
+
+<h1>{L_ACP_MUSICSHARE_TOOLS}</h1>
+
+<!-- INCLUDE musicshare_identity.html -->
+
+<div class="musicshare-acp-disclaimer">
+	<strong>{L_MUSICSHARE_DISCLAIMER_TITLE}</strong>
+	<p>{L_MUSICSHARE_DISCLAIMER_ACP}</p>
+</div>
+
+<p>{L_MS_TOOLS_INTRO}</p>
+<p class="musicshare-acp-note">{L_MS_TOOLS_ZERO_NOTE}</p>
+
+<fieldset>
+	<legend>{L_MS_TOOLS_OVERVIEW}</legend>
+
+	<table class="musicshare-check-table" cellspacing="0">
+		<tbody>
+			<tr><td class="musicshare-check-label">{L_MS_T_SONGS}</td><td class="musicshare-check-value">{MS_T_SONGS} ({MS_T_APPROVED} {L_MS_T_APPROVED}, {MS_T_PENDING} {L_MS_T_PENDING})</td></tr>
+			<tr><td class="musicshare-check-label">{L_MS_T_UPLOADERS}</td><td class="musicshare-check-value">{MS_T_UPLOADERS}</td></tr>
+			<tr><td class="musicshare-check-label">{L_MS_T_SIZE}</td><td class="musicshare-check-value">{MS_T_SIZE} MB</td></tr>
+			<tr><td class="musicshare-check-label">{L_MS_T_PLAYS}</td><td class="musicshare-check-value">{MS_T_PLAYS} <span class="explain">({MS_T_PLAYS_LOG} {L_MS_T_IN_LOG})</span></td></tr>
+			<tr><td class="musicshare-check-label">{L_MS_T_DOWNLOADS}</td><td class="musicshare-check-value">{MS_T_DOWNLOADS} <span class="explain">({MS_T_DOWNLOADS_LOG} {L_MS_T_IN_LOG})</span></td></tr>
+			<tr><td class="musicshare-check-label">{L_MS_T_VOTES}</td><td class="musicshare-check-value">{MS_T_LIKES} {L_MS_T_LIKES} &middot; {MS_T_DISLIKES} {L_MS_T_DISLIKES} <span class="explain">({MS_T_VOTES} {L_MS_T_ROWS})</span></td></tr>
+			<tr><td class="musicshare-check-label">{L_MS_T_TOPICS}</td><td class="musicshare-check-value">{MS_T_TOPICS}</td></tr>
+			<tr><td class="musicshare-check-label">{L_MS_T_PLAYLISTS}</td><td class="musicshare-check-value">{MS_T_PLAYLISTS}</td></tr>
+			<tr><td class="musicshare-check-label">{L_MS_T_GENRES}</td><td class="musicshare-check-value">{MS_T_GENRES}</td></tr>
+			<tr><td class="musicshare-check-label">{L_MS_T_FOLLOWS}</td><td class="musicshare-check-value">{MS_T_FOLLOWS}</td></tr>
+		</tbody>
+	</table>
+</fieldset>
+
+<form id="musicshare_tools" method="post" action="{U_ACTION}">
+
+<fieldset>
+	<legend>{L_MS_TOOLS_COUNTERS}</legend>
+
+	<dl>
+		<dt><label>{L_MS_TOOLS_VOTES}:</label>
+		<br /><span class="explain">{L_MS_TOOLS_VOTES_EXPLAIN}</span></dt>
+		<dd>
+			<span class="explain"><strong>{MS_WRONG_VOTES}</strong> {L_MS_TOOLS_WRONG}</span>
+			<br /><input type="submit" name="fix_votes" value="{L_MS_TOOLS_RECALC}" class="button2" />
+		</dd>
+	</dl>
+
+	<dl>
+		<dt><label>{L_MS_TOOLS_DOWNLOADS}:</label>
+		<br /><span class="explain">{L_MS_TOOLS_DOWNLOADS_EXPLAIN}</span></dt>
+		<dd>
+			<span class="explain"><strong>{MS_WRONG_DOWNLOADS}</strong> {L_MS_TOOLS_WRONG}</span>
+			<br /><input type="submit" name="fix_downloads" value="{L_MS_TOOLS_RECALC}" class="button2" />
+		</dd>
+	</dl>
+
+	<dl>
+		<dt><label>{L_MS_TOOLS_PLAYS}:</label>
+		<br /><span class="explain">{L_MS_TOOLS_PLAYS_EXPLAIN}</span></dt>
+		<dd><span class="explain">{L_MS_TOOLS_PLAYS_NOTE}</span></dd>
+	</dl>
+
+	<dl>
+		<dt><label>{L_MS_TOOLS_QUALITY}:</label>
+		<br /><span class="explain">{L_MS_TOOLS_QUALITY_EXPLAIN}</span></dt>
+		<dd>
+			<span class="explain"><strong>{MS_MISSING_QUALITY}</strong> {L_MS_TOOLS_QUALITY_MISSING}</span>
+			<br /><input type="submit" name="fix_quality" value="{L_MS_TOOLS_QUALITY_RUN}" class="button2" />
+		</dd>
+	</dl>
+</fieldset>
+
+<fieldset>
+	<legend>{L_MS_TOOLS_REFERENCES}</legend>
+
+	<dl>
+		<dt><label>{L_MS_TOOLS_TOPICS}:</label>
+		<br /><span class="explain">{L_MS_TOOLS_TOPICS_EXPLAIN}</span></dt>
+		<dd>
+			<span class="explain"><strong>{MS_STALE_TOPICS}</strong> {L_MS_TOOLS_STALE}</span>
+			<br /><input type="submit" name="fix_topics" value="{L_MS_TOOLS_FIX}" class="button2" />
+		</dd>
+	</dl>
+
+	<dl>
+		<dt><label>{L_MS_TOOLS_ORPHANS}:</label>
+		<br /><span class="explain">{L_MS_TOOLS_ORPHANS_EXPLAIN}</span></dt>
+		<dd>
+			<span class="explain"><strong>{MS_ORPHAN_ROWS}</strong> {L_MS_TOOLS_ROWS}</span>
+			<br /><input type="submit" name="fix_orphans" value="{L_MS_TOOLS_FIX}" class="button2" />
+		</dd>
+	</dl>
+
+	{S_FORM_TOKEN}
+</fieldset>
+
+</form>
+
+<!-- INCLUDE overall_footer.html -->
