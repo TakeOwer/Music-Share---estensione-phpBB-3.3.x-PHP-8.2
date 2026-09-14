@@ -23,8 +23,10 @@
 
 	<!-- IF TOTAL_SONGS -->
 	<!-- INCLUDE musicshare_song_list.html -->
-	<!-- IF PAGINATION -->
-	<div class="pagination">{PAGINATION}</div>
+	<!-- IF .pagination -->
+	<div class="pagination">
+		<!-- INCLUDE pagination.html -->
+	</div>
 	<!-- ENDIF -->
 	<!-- ELSE -->
 	<p>{L_MUSICSHARE_NO_RESULTS}</p>

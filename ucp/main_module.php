@@ -50,12 +50,17 @@ class main_module
 
 	protected function handle_songs($phpbb_container, $request, $template, $user)
 	{
+		global $phpbb_root_path, $phpEx;
+
 		$song_repository = $phpbb_container->get('salvocortesiano.musicshare.song_repository');
 		$storage_helper = $phpbb_container->get('salvocortesiano.musicshare.storage_helper');
 		$genre_repository = $phpbb_container->get('salvocortesiano.musicshare.genre_repository');
 		$genre_translator = $phpbb_container->get('salvocortesiano.musicshare.genre_translator');
+		$license_helper = $phpbb_container->get('salvocortesiano.musicshare.license_helper');
 		$controller_helper = $phpbb_container->get('controller.helper');
 		$config = $phpbb_container->get('config');
+		$topic_on = $phpbb_container->get('salvocortesiano.musicshare.topic_creator')->is_enabled();
+		$contact_helper = $phpbb_container->get('salvocortesiano.musicshare.contact_helper');
 
 		$user_id = (int) $user->data['user_id'];
 		$action = $request->variable('action', '');
@@ -111,6 +116,9 @@ class main_module
 
 				$update = array(
 					'song_description'	=> utf8_substr($descrizione, 0, $max_desc),
+					'song_license'		=> $license_helper->sanitize($request->variable('song_license', '')),
+					'song_bpm'			=> max(0, min(400, (int) $request->variable('song_bpm', 0))),
+					'song_key'			=> $license_helper->sanitize_key($request->variable('song_key', '', true)),
 					'allow_download'	=> $request->variable('allow_download', 0) ? 1 : 0,
 					'song_title'	=> $request->variable('song_title', '', true),
 					'song_artist'	=> $request->variable('song_artist', '', true),
@@ -145,6 +153,24 @@ class main_module
 					trigger_error($cover_error . '<br /><br />' . sprintf('<a href="%1$s">%2$s</a>', $this->u_action, $user->lang('BACK_TO_PREV')), E_USER_WARNING);
 				}
 
+				// Sostituzione del file audio: utile quando si e' caricata
+				// una versione sbagliata. Cancellare e ricaricare farebbe
+				// perdere ascolti, voti e la discussione collegata.
+				$nuovo_file = $request->file('replace_file');
+
+				if (!empty($nuovo_file['name']) && empty($nuovo_file['error']))
+				{
+					$esito = $phpbb_container->get('salvocortesiano.musicshare.upload_handler')
+						->replace_file($song, $nuovo_file, (string) $user->data['username']);
+
+					if (!$esito['success'])
+					{
+						trigger_error($user->lang($esito['error']) . adm_back_link($this->u_action), E_USER_WARNING);
+					}
+
+					$update = array_merge($update, $esito['fields']);
+				}
+
 				$song_repository->update_song($song_id, $update);
 				$song_repository->set_genres($song_id, $genre_ids);
 
@@ -174,6 +200,17 @@ class main_module
 			$edit_cover = $edit_storage->get_cover_file($song);
 			$edit_has_cover = $edit_cover && is_file($edit_cover);
 
+			foreach ($license_helper->get_options(isset($song['song_license']) ? $song['song_license'] : '') as $voce)
+			{
+				$template->assign_block_vars('licenses', $voce);
+			}
+
+			// tonalita' suggerite per il campo libero
+			foreach ($license_helper->get_key_options() as $voce)
+			{
+				$template->assign_block_vars('key_options', $voce);
+			}
+
 			$template->assign_vars(array(
 				'S_EDIT'		=> true,
 				'S_HAS_COVER'	=> $edit_has_cover,
@@ -184,6 +221,10 @@ class main_module
 				'EDIT_ALBUM'	=> $song['song_album'],
 				'EDIT_YEAR'		=> $song['song_year'],
 				'EDIT_DESCRIPTION'	=> isset($song['song_description']) ? (string) $song['song_description'] : '',
+				'EDIT_BPM'			=> !empty($song['song_bpm']) ? (int) $song['song_bpm'] : '',
+				'EDIT_KEY'			=> isset($song['song_key']) ? (string) $song['song_key'] : '',
+				'S_SHOW_LICENSE'	=> !isset($config['musicshare_show_license']) || (bool) $config['musicshare_show_license'],
+				'S_SHOW_BPM'		=> !isset($config['musicshare_show_bpm']) || (bool) $config['musicshare_show_bpm'],
 				'S_ALLOW_DOWNLOAD'	=> (!isset($song['allow_download']) || $song['allow_download']),
 				// l'autore scarica sempre i propri brani, anche quelli per
 				// cui ha vietato il download agli altri
@@ -191,6 +232,9 @@ class main_module
 				'U_DOWNLOAD'		=> $controller_helper->route('salvocortesiano_musicshare_download', array('song_id' => $song['song_id'])),
 				'S_DOWNLOAD_ENABLED'	=> !empty($config['musicshare_allow_download']),
 			'S_DESCRIPTIONS'	=> !isset($config['musicshare_descriptions']) || (bool) $config['musicshare_descriptions'],
+			'S_TOPIC_ENABLED'	=> $phpbb_container->get('salvocortesiano.musicshare.topic_creator')->is_enabled(),
+			'S_SHOW_LICENSE'	=> !isset($config['musicshare_show_license']) || (bool) $config['musicshare_show_license'],
+			'S_SHOW_BPM'		=> !isset($config['musicshare_show_bpm']) || (bool) $config['musicshare_show_bpm'],
 			'S_BBCODE_ENABLED'	=> !isset($config['musicshare_bbcode']) || (bool) $config['musicshare_bbcode'],
 			'DESCRIPTION_MAX'	=> (int) $config['musicshare_description_max'] ?: 300,
 				'U_ACTION'		=> $this->u_action . '&action=edit&song_id=' . $song_id,
@@ -202,6 +246,20 @@ class main_module
 		}
 
 		$songs = $song_repository->get_songs_by_user($user_id);
+
+		// argomenti esistenti davvero: l'identificativo salvato puo'
+		// riferirsi a una discussione cancellata o nascosta
+		$topic_ids = array();
+
+		foreach ($songs as $song)
+		{
+			if (!empty($song['topic_id']))
+			{
+				$topic_ids[] = (int) $song['topic_id'];
+			}
+		}
+
+		$argomenti = $song_repository->get_visible_topics($topic_ids);
 		$used_space = $song_repository->get_user_total_size($user_id);
 
 		$storage_helper = $phpbb_container->get('salvocortesiano.musicshare.storage_helper');
@@ -218,8 +276,19 @@ class main_module
 
 			$template->assign_block_vars('songs', array(
 				'GENRES'		=> implode(', ', $song_genres),
+				// stessi dati tecnici mostrati nelle altre liste
+				'QUALITY'		=> \salvocortesiano\musicshare\service\metadata_extractor::quality_label($song, $user),
 				'DESCRIPTION'	=> (!isset($config['musicshare_descriptions']) || $config['musicshare_descriptions'])
 					&& isset($song['song_description']) ? (string) $song['song_description'] : '',
+				'U_TOPIC'		=> (!empty($song['topic_id']) && isset($argomenti[(int) $song['topic_id']]))
+					? append_sid($phpbb_root_path . 'viewtopic.' . $phpEx, 't=' . (int) $song['topic_id'])
+					: '',
+				'U_CONTACT'		=> $contact_helper->get_pm_url((int) $song['user_id'],
+					isset($song['user_allow_pm']) ? (int) $song['user_allow_pm'] : null,
+					(int) $song['song_id']),
+				'U_PUBLISH'		=> ($topic_on && !isset($argomenti[(int) $song['topic_id']]) && !empty($song['song_approved']))
+					? $controller_helper->route('salvocortesiano_musicshare_publish', array('song_id' => (int) $song['song_id']))
+					: '',
 				'UPLOAD_DATE'	=> $user->format_date((int) $song['upload_time']),
 				'LIKES'			=> isset($song['song_likes']) ? (int) $song['song_likes'] : 0,
 				'DISLIKES'		=> isset($song['song_dislikes']) ? (int) $song['song_dislikes'] : 0,
@@ -240,6 +309,7 @@ class main_module
 				'APPROVED'		=> (bool) $song['song_approved'],
 				'FILE_SIZE_MB'	=> round($song['file_size'] / 1048576, 2),
 				'PLAY_COUNT'		=> (int) $song['play_count'],
+				'DOWNLOAD_COUNT'	=> isset($song['download_count']) ? (int) $song['download_count'] : 0,
 				'PLAY_COUNT_TEXT'	=> $user->lang('MUSICSHARE_PLAYS_COUNT', (int) $song['play_count']),
 				'U_STREAM'		=> $controller_helper->route('salvocortesiano_musicshare_stream', array('song_id' => $song['song_id'])),
 				'U_COVER'		=> $has_cover ? $controller_helper->route('salvocortesiano_musicshare_cover', array('song_id' => $song['song_id'])) : '',
@@ -273,6 +343,7 @@ class main_module
 		$upload_handler = $phpbb_container->get('salvocortesiano.musicshare.upload_handler');
 		$genre_repository = $phpbb_container->get('salvocortesiano.musicshare.genre_repository');
 		$genre_translator = $phpbb_container->get('salvocortesiano.musicshare.genre_translator');
+		$license_helper = $phpbb_container->get('salvocortesiano.musicshare.license_helper');
 		$storage_helper = $phpbb_container->get('salvocortesiano.musicshare.storage_helper');
 
 		add_form_key('musicshare_upload');
@@ -328,6 +399,17 @@ class main_module
 			}
 		}
 
+		foreach ($license_helper->get_options('') as $voce)
+		{
+			$template->assign_block_vars('licenses', $voce);
+		}
+
+		// tonalita' suggerite per il campo libero
+		foreach ($license_helper->get_key_options() as $voce)
+		{
+			$template->assign_block_vars('key_options', $voce);
+		}
+
 		$template->assign_vars(array(
 			'ERROR'				=> $error,
 			'SUCCESS'			=> $success,
@@ -336,6 +418,9 @@ class main_module
 			'MAX_FILESIZE_MB'	=> round(((int) $config['musicshare_max_filesize']) / 1048576, 1),
 			'S_DOWNLOAD_ENABLED'	=> !empty($config['musicshare_allow_download']),
 			'S_DESCRIPTIONS'	=> !isset($config['musicshare_descriptions']) || (bool) $config['musicshare_descriptions'],
+			'S_TOPIC_ENABLED'	=> $phpbb_container->get('salvocortesiano.musicshare.topic_creator')->is_enabled(),
+			'S_SHOW_LICENSE'	=> !isset($config['musicshare_show_license']) || (bool) $config['musicshare_show_license'],
+			'S_SHOW_BPM'		=> !isset($config['musicshare_show_bpm']) || (bool) $config['musicshare_show_bpm'],
 			'S_BBCODE_ENABLED'	=> !isset($config['musicshare_bbcode']) || (bool) $config['musicshare_bbcode'],
 			'DESCRIPTION_MAX'	=> (int) $config['musicshare_description_max'] ?: 300,
 		));

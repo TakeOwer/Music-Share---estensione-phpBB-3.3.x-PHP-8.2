@@ -1,13 +1,354 @@
 <!-- INCLUDE overall_header.html -->
 
 <div class="musicshare-page musicshare-panel">
-	<h2>{PAGE_USERNAME}</h2>
-	<p class="musicshare-meta">{USER_SUMMARY}</p>
 
+	<!--
+		Intestazione dell'autore: avatar, nome, data di iscrizione e i
+		due pulsanti che contano (Segui e Contatta). Compare anche per
+		chi non ha ancora pubblicato brani, altrimenti quei pulsanti
+		sarebbero irraggiungibili proprio a chi sta iniziando.
+	-->
+	<div class="musicshare-author">
+		<div class="musicshare-author-avatar">
+			<!-- IF AUTHOR_AVATAR -->
+			{AUTHOR_AVATAR}
+			<!-- ELSE -->
+			<span class="musicshare-author-avatar-empty">&#9835;</span>
+			<!-- ENDIF -->
+		</div>
+
+		<div class="musicshare-author-main">
+			<span class="musicshare-author-label">{L_MUSICSHARE_AUTHOR}</span>
+			<h2 class="musicshare-author-name">{PAGE_USERNAME}</h2>
+			<p class="musicshare-author-meta">
+				{USER_SUMMARY}
+				<!-- IF S_HAS_SONGS --> &middot; {STAT_DURATION}<!-- ENDIF -->
+				&middot; {L_MUSICSHARE_AUTHOR_SINCE} {AUTHOR_REGDATE}
+			</p>
+
+			<p class="musicshare-author-actions">
+				<!-- IF S_CAN_FOLLOW -->
+				<a href="{U_FOLLOW}" class="musicshare-btn<!-- IF S_FOLLOWING --> musicshare-btn-following<!-- ELSE --> musicshare-btn-primary<!-- ENDIF -->">
+					<i class="icon fa-<!-- IF S_FOLLOWING -->check<!-- ELSE -->bell-o<!-- ENDIF --> fa-fw" aria-hidden="true"></i>
+					<!-- IF S_FOLLOWING -->{L_MUSICSHARE_UNFOLLOW}<!-- ELSE -->{L_MUSICSHARE_FOLLOW}<!-- ENDIF -->
+				</a>
+				<!-- ENDIF -->
+
+				<!-- IF U_CONTACT -->
+				<a href="{U_CONTACT}" class="musicshare-btn"><i class="icon fa-envelope-o fa-fw" aria-hidden="true"></i> {L_MUSICSHARE_CONTACT}</a>
+				<!-- ENDIF -->
+
+				<a href="{U_AUTHOR_PROFILE}" class="musicshare-btn"><i class="icon fa-user fa-fw" aria-hidden="true"></i> {L_MUSICSHARE_AUTHOR_PROFILE}</a>
+
+				<!-- IF S_WALL -->
+				<a href="#musicshare-wall" class="musicshare-btn"><i class="icon fa-comments-o fa-fw" aria-hidden="true"></i> {L_MUSICSHARE_WALL}<!-- IF WALL_COUNT --> ({WALL_COUNT})<!-- ENDIF --></a>
+				<!-- ENDIF -->
+			</p>
+
+			<!-- IF S_CAN_FOLLOW -->
+			<p class="musicshare-author-explain"><span class="explain">{L_MUSICSHARE_FOLLOW_EXPLAIN}</span></p>
+			<!-- ENDIF -->
+		</div>
+	</div>
+
+	<ul class="musicshare-author-stats">
+		<li>
+			<span class="musicshare-stat-value">{STAT_SONGS}</span>
+			<span class="musicshare-stat-label">{L_MUSICSHARE_STAT_SONGS}</span>
+		</li>
+		<li>
+			<span class="musicshare-stat-value">{STAT_PLAYS}</span>
+			<span class="musicshare-stat-label">{L_MUSICSHARE_STAT_PLAYS}</span>
+		</li>
+		<li>
+			<span class="musicshare-stat-value">{STAT_DOWNLOADS}</span>
+			<span class="musicshare-stat-label">{L_MUSICSHARE_STAT_DOWNLOADS}</span>
+		</li>
+		<li>
+			<span class="musicshare-stat-value">{STAT_LIKES}</span>
+			<span class="musicshare-stat-label">{L_MUSICSHARE_STAT_LIKES}</span>
+		</li>
+		<li>
+			<span class="musicshare-stat-value">{STAT_DISLIKES}</span>
+			<span class="musicshare-stat-label">{L_MUSICSHARE_STAT_DISLIKES}</span>
+		</li>
+		<li>
+			<span class="musicshare-stat-value">{STAT_FOLLOWERS}</span>
+			<span class="musicshare-stat-label">{L_MUSICSHARE_FOLLOWERS}</span>
+		</li>
+	</ul>
+
+	<!-- INCLUDE musicshare_nav.html -->
+
+	<!-- IF .top_songs -->
+	<h3 class="musicshare-section-title">{L_MUSICSHARE_TOP_SONGS}</h3>
+	<ul class="musicshare-song-list">
+		<!-- BEGIN top_songs -->
+		<li class="musicshare-song-row"
+			data-song-id="{top_songs.SONG_ID}"
+			data-title="{top_songs.TITLE}"
+			data-artist="{top_songs.ARTIST}"
+			data-album="{top_songs.ALBUM}"
+			data-year="{top_songs.YEAR}"
+			data-stream-url="{top_songs.U_STREAM}"
+			data-cover-url="{top_songs.U_COVER}"
+			data-likes="{top_songs.LIKES}"
+			data-dislikes="{top_songs.DISLIKES}"
+			data-myvote="{top_songs.MY_VOTE}"
+			data-canvote="<!-- IF top_songs.S_CAN_VOTE -->1<!-- ELSE -->0<!-- ENDIF -->">
+			<span class="musicshare-cover">
+				<!-- IF top_songs.S_HAS_COVER -->
+				<img src="{top_songs.U_COVER}" alt="" />
+				<!-- ELSE -->
+				<span class="musicshare-cover-placeholder">&#9835;</span>
+				<!-- ENDIF -->
+			</span>
+			<span class="musicshare-info">
+				<span class="musicshare-title">{top_songs.TITLE}</span>
+				<span class="musicshare-artist">
+					{top_songs.ARTIST}<!-- IF top_songs.ALBUM --> &mdash; {top_songs.ALBUM}<!-- ENDIF --><!-- IF top_songs.YEAR --> ({top_songs.YEAR})<!-- ENDIF -->
+				</span>
+				<!-- IF top_songs.S_HAS_UPLOADER -->
+				<span class="musicshare-uploader">{L_MUSICSHARE_UPLOADED_BY} {top_songs.UPLOADER} &middot; {top_songs.UPLOAD_DATE}<!-- IF top_songs.GENRES --> &middot; {top_songs.GENRES}<!-- ENDIF --><!-- IF top_songs.BPM --> &middot; {top_songs.BPM} BPM<!-- ENDIF --><!-- IF top_songs.SONG_KEY --> &middot; {top_songs.SONG_KEY}<!-- ENDIF --><!-- IF top_songs.QUALITY --> &middot; {top_songs.QUALITY}<!-- ENDIF --><!-- IF top_songs.LICENSE --> &middot; <span class="musicshare-license">{top_songs.LICENSE}</span><!-- ENDIF --></span>
+				<!-- ENDIF -->
+			</span>
+			<span class="musicshare-duration" title="{L_MUSICSHARE_DURATION}">{top_songs.DURATION}</span>
+			<span class="musicshare-plays" title="{top_songs.PLAY_COUNT_TEXT}"><i class="icon fa-headphones fa-fw" aria-hidden="true"></i> {top_songs.PLAY_COUNT}</span>
+			<span class="musicshare-downloads" title="{L_MUSICSHARE_DOWNLOADS}"><i class="icon fa-download fa-fw" aria-hidden="true"></i> {top_songs.DOWNLOAD_COUNT}</span>
+			<span class="musicshare-row-actions">
+				<!-- IF S_MUSICSHARE_CAN_PLAYLIST -->
+				<button type="button" class="musicshare-add-playlist" data-song-id="{top_songs.SONG_ID}" title="{L_MUSICSHARE_ADD_TO_PLAYLIST}">+</button>
+				<!-- ENDIF -->
+				<!-- IF top_songs.U_TOPIC --><a href="{top_songs.U_TOPIC}" class="musicshare-btn" title="{L_MUSICSHARE_DISCUSS}"><i class="icon fa-comments fa-fw" aria-hidden="true"></i></a><!-- ENDIF -->
+				<!-- IF top_songs.U_PUBLISH --><a href="{top_songs.U_PUBLISH}" class="musicshare-btn musicshare-btn-publish" title="{L_MUSICSHARE_PUBLISH_TOPIC}"><i class="icon fa-bullhorn fa-fw" aria-hidden="true"></i></a><!-- ENDIF -->
+				<!-- IF top_songs.U_CONTACT --><a href="{top_songs.U_CONTACT}" class="musicshare-btn" title="{L_MUSICSHARE_CONTACT}"><i class="icon fa-envelope-o fa-fw" aria-hidden="true"></i></a><!-- ENDIF -->
+				<!-- IF top_songs.S_CAN_DOWNLOAD -->
+				<a href="{top_songs.U_DOWNLOAD}" class="musicshare-btn" title="{L_MUSICSHARE_DOWNLOAD}">&#8681;</a>
+				<!-- ENDIF -->
+				<!-- IF top_songs.S_CAN_MANAGE -->
+				<a href="{top_songs.U_DELETE}" class="musicshare-btn musicshare-btn-danger" title="{L_DELETE}">&#10005;</a>
+				<!-- ENDIF -->
+			</span>
+		</li>
+		<!-- END top_songs -->
+	</ul>
+	<!-- ENDIF -->
+
+	<h3 class="musicshare-section-title">{L_MUSICSHARE_AUTHOR_ALL_SONGS}</h3>
+
+	<!-- IF .songs -->
 	<!-- INCLUDE musicshare_song_list.html -->
 
-	<!-- IF PAGINATION -->
-	<div class="pagination">{PAGINATION}</div>
+	<!-- IF .pagination -->
+	<div class="pagination">
+		<!-- INCLUDE pagination.html -->
+	</div>
+	<!-- ENDIF -->
+	<!-- ELSE -->
+	<p class="musicshare-empty">{L_MUSICSHARE_AUTHOR_EMPTY}</p>
+	<!-- ENDIF -->
+
+	<!--
+		Bacheca dell'autore. I commenti restano qui, sulla sua pagina:
+		per discutere di un brano c'e' gia' l'argomento del brano, e
+		mandare fuori pagina chi vuole scrivere due righe all'autore
+		sarebbe una seconda strada verso la stessa cosa.
+
+		Ogni scheda ha la sua ancora, cosi' le notifiche possono
+		fermarsi sul commento giusto.
+	-->
+	<!-- IF S_WALL -->
+	<h3 class="musicshare-section-title" id="musicshare-wall">{L_MUSICSHARE_WALL}<!-- IF WALL_COUNT --> <span class="musicshare-wall-count">{WALL_COUNT}</span><!-- ENDIF --></h3>
+
+	<!-- IF S_WALL_COMMENT -->
+	<form method="post" action="{U_WALL_POST}" class="musicshare-wall-form">
+		<input type="hidden" name="wall_action" value="add" />
+		<input type="hidden" name="parent_id" value="0" />
+		<textarea name="wall_text" rows="3" maxlength="{WALL_MAXLENGTH}" placeholder="{L_MUSICSHARE_WALL_PLACEHOLDER}" required></textarea>
+		<p class="musicshare-wall-send">
+			<button type="submit" class="musicshare-btn musicshare-btn-primary">{L_MUSICSHARE_WALL_SEND}</button>
+			<span class="explain">{L_MUSICSHARE_WALL_EXPLAIN}</span>
+		</p>
+		{S_FORM_TOKEN}
+	</form>
+	<!-- ELSEIF WALL_NOTICE -->
+	<p class="musicshare-wall-notice"><span class="explain">{WALL_NOTICE}</span></p>
+	<!-- ENDIF -->
+
+	<!-- IF .wall_comments -->
+	<ul class="musicshare-wall">
+		<!-- BEGIN wall_comments -->
+		<li class="musicshare-wall-card<!-- IF wall_comments.S_OWNER --> musicshare-wall-card-author<!-- ENDIF -->" id="musicshare-comment-{wall_comments.COMMENT_ID}">
+			<div class="musicshare-wall-avatar">
+				<!-- IF wall_comments.AVATAR -->{wall_comments.AVATAR}<!-- ELSE --><span class="musicshare-wall-avatar-empty">&#9679;</span><!-- ENDIF -->
+			</div>
+			<div class="musicshare-wall-body">
+				<div class="musicshare-wall-head">
+					<span class="musicshare-wall-author">{wall_comments.USERNAME}</span>
+					<span class="musicshare-wall-date">{wall_comments.COMMENT_DATE}</span>
+					<!-- IF wall_comments.S_EDITED --><span class="musicshare-wall-edited"><!-- IF wall_comments.S_EDITED_BY_OTHER -->{L_MUSICSHARE_WALL_EDITED_MOD}<!-- ELSE -->{L_MUSICSHARE_WALL_EDITED}<!-- ENDIF --> {wall_comments.EDITED_DATE}</span><!-- ENDIF -->
+				</div>
+				<div class="musicshare-wall-text">{wall_comments.TEXT}</div>
+
+				<!--
+					Rispondi, Modifica ed Elimina stanno tutti e tre in
+					chiaro. L'eliminazione era nascosta dentro il modulo
+					di modifica: chi modera non ha motivo di aprire la
+					modifica per cancellare, e infatti non la trovava.
+				-->
+				<div class="musicshare-wall-tools">
+					<!-- IF wall_comments.S_CAN_REPLY -->
+					<button type="button" class="musicshare-wall-link" data-musicshare-toggle="musicshare-reply-{wall_comments.COMMENT_ID}">{L_MUSICSHARE_WALL_REPLY}</button>
+					<!-- ENDIF -->
+					<!-- IF wall_comments.S_CAN_MANAGE -->
+					<button type="button" class="musicshare-wall-link" data-musicshare-toggle="musicshare-edit-{wall_comments.COMMENT_ID}">{L_EDIT}</button>
+
+					<form method="post" action="{U_WALL_POST}" class="musicshare-wall-delete">
+						<input type="hidden" name="wall_action" value="delete" />
+						<input type="hidden" name="comment_id" value="{wall_comments.COMMENT_ID}" />
+						<button type="submit" class="musicshare-wall-link musicshare-wall-link-danger" data-musicshare-confirm="{L_MUSICSHARE_WALL_DELETE_CONFIRM}">{L_DELETE}</button>
+						{S_FORM_TOKEN}
+					</form>
+					<!-- ENDIF -->
+
+					<!--
+						Reazioni: i conteggi si vedono sempre, i pulsanti si premono
+						solo se si e' collegati e non si e' l'autore del commento.
+					-->
+					<span class="musicshare-reactions" data-comment-id="{wall_comments.COMMENT_ID}">
+						<button type="button" class="musicshare-react musicshare-react-like<!-- IF wall_comments.S_MY_LIKE --> musicshare-react-active<!-- ENDIF -->" data-reaction="1"<!-- IF not wall_comments.S_CAN_REACT --> disabled="disabled"<!-- ENDIF --> title="{L_MUSICSHARE_LIKE}">
+							<span class="musicshare-react-icon">&#128077;</span><span class="musicshare-react-count">{wall_comments.REACT_LIKE}</span>
+						</button>
+						<button type="button" class="musicshare-react musicshare-react-dislike<!-- IF wall_comments.S_MY_DISLIKE --> musicshare-react-active<!-- ENDIF -->" data-reaction="2"<!-- IF not wall_comments.S_CAN_REACT --> disabled="disabled"<!-- ENDIF --> title="{L_MUSICSHARE_DISLIKE}">
+							<span class="musicshare-react-icon">&#128078;</span><span class="musicshare-react-count">{wall_comments.REACT_DISLIKE}</span>
+						</button>
+						<button type="button" class="musicshare-react musicshare-react-heart<!-- IF wall_comments.S_MY_HEART --> musicshare-react-active<!-- ENDIF -->" data-reaction="3"<!-- IF not wall_comments.S_CAN_REACT --> disabled="disabled"<!-- ENDIF --> title="{L_MUSICSHARE_WALL_HEART}">
+							<span class="musicshare-react-icon">&#10084;</span><span class="musicshare-react-count">{wall_comments.REACT_HEART}</span>
+						</button>
+					</span>
+				</div>
+
+				<!-- IF wall_comments.S_CAN_MANAGE -->
+				<form method="post" action="{U_WALL_POST}" class="musicshare-wall-form musicshare-wall-hidden" id="musicshare-edit-{wall_comments.COMMENT_ID}">
+					<input type="hidden" name="wall_action" value="edit" />
+					<input type="hidden" name="comment_id" value="{wall_comments.COMMENT_ID}" />
+					<textarea name="wall_text" rows="3" maxlength="{WALL_MAXLENGTH}" required>{wall_comments.RAW_TEXT}</textarea>
+					<p class="musicshare-wall-send">
+						<button type="submit" class="musicshare-btn musicshare-btn-primary">{L_SUBMIT}</button>
+						<button type="button" class="musicshare-btn" data-musicshare-close="musicshare-edit-{wall_comments.COMMENT_ID}">{L_CANCEL}</button>
+					</p>
+					{S_FORM_TOKEN}
+				</form>
+
+				<!-- ENDIF -->
+
+				<!-- IF wall_comments.S_CAN_REPLY -->
+				<form method="post" action="{U_WALL_POST}" class="musicshare-wall-form musicshare-wall-hidden" id="musicshare-reply-{wall_comments.COMMENT_ID}">
+					<input type="hidden" name="wall_action" value="add" />
+					<input type="hidden" name="parent_id" value="{wall_comments.COMMENT_ID}" />
+					<textarea name="wall_text" rows="2" maxlength="{WALL_MAXLENGTH}" placeholder="{L_MUSICSHARE_WALL_REPLY_PLACEHOLDER}" required></textarea>
+					<p class="musicshare-wall-send">
+						<button type="submit" class="musicshare-btn musicshare-btn-primary">{L_MUSICSHARE_WALL_REPLY}</button>
+						<button type="button" class="musicshare-btn" data-musicshare-close="musicshare-reply-{wall_comments.COMMENT_ID}">{L_CANCEL}</button>
+					</p>
+					{S_FORM_TOKEN}
+				</form>
+				<!-- ENDIF -->
+
+				<!-- IF .wall_comments.replies -->
+				<ul class="musicshare-wall musicshare-wall-replies">
+					<!-- BEGIN replies -->
+					<li class="musicshare-wall-card<!-- IF wall_comments.replies.S_OWNER --> musicshare-wall-card-author<!-- ENDIF -->" id="musicshare-comment-{wall_comments.replies.COMMENT_ID}">
+						<div class="musicshare-wall-avatar">
+							<!-- IF wall_comments.replies.AVATAR -->{wall_comments.replies.AVATAR}<!-- ELSE --><span class="musicshare-wall-avatar-empty">&#9679;</span><!-- ENDIF -->
+						</div>
+						<div class="musicshare-wall-body">
+							<div class="musicshare-wall-head">
+								<span class="musicshare-wall-author">{wall_comments.replies.USERNAME}</span>
+								<span class="musicshare-wall-date">{wall_comments.replies.COMMENT_DATE}</span>
+								<!-- IF wall_comments.replies.S_EDITED --><span class="musicshare-wall-edited"><!-- IF wall_comments.replies.S_EDITED_BY_OTHER -->{L_MUSICSHARE_WALL_EDITED_MOD}<!-- ELSE -->{L_MUSICSHARE_WALL_EDITED}<!-- ENDIF --> {wall_comments.replies.EDITED_DATE}</span><!-- ENDIF -->
+							</div>
+							<div class="musicshare-wall-text">{wall_comments.replies.TEXT}</div>
+
+							<div class="musicshare-wall-tools">
+								<!--
+									Reazioni: i conteggi si vedono sempre, i pulsanti si premono
+									solo se si e' collegati e non si e' l'autore del commento.
+								-->
+								<span class="musicshare-reactions" data-comment-id="{wall_comments.replies.COMMENT_ID}">
+									<button type="button" class="musicshare-react musicshare-react-like<!-- IF wall_comments.replies.S_MY_LIKE --> musicshare-react-active<!-- ENDIF -->" data-reaction="1"<!-- IF not wall_comments.replies.S_CAN_REACT --> disabled="disabled"<!-- ENDIF --> title="{L_MUSICSHARE_LIKE}">
+										<span class="musicshare-react-icon">&#128077;</span><span class="musicshare-react-count">{wall_comments.replies.REACT_LIKE}</span>
+									</button>
+									<button type="button" class="musicshare-react musicshare-react-dislike<!-- IF wall_comments.replies.S_MY_DISLIKE --> musicshare-react-active<!-- ENDIF -->" data-reaction="2"<!-- IF not wall_comments.replies.S_CAN_REACT --> disabled="disabled"<!-- ENDIF --> title="{L_MUSICSHARE_DISLIKE}">
+										<span class="musicshare-react-icon">&#128078;</span><span class="musicshare-react-count">{wall_comments.replies.REACT_DISLIKE}</span>
+									</button>
+									<button type="button" class="musicshare-react musicshare-react-heart<!-- IF wall_comments.replies.S_MY_HEART --> musicshare-react-active<!-- ENDIF -->" data-reaction="3"<!-- IF not wall_comments.replies.S_CAN_REACT --> disabled="disabled"<!-- ENDIF --> title="{L_MUSICSHARE_WALL_HEART}">
+										<span class="musicshare-react-icon">&#10084;</span><span class="musicshare-react-count">{wall_comments.replies.REACT_HEART}</span>
+									</button>
+								</span>
+
+								<!-- IF wall_comments.replies.S_CAN_MANAGE -->
+								<button type="button" class="musicshare-wall-link" data-musicshare-toggle="musicshare-edit-{wall_comments.replies.COMMENT_ID}">{L_EDIT}</button>
+
+								<form method="post" action="{U_WALL_POST}" class="musicshare-wall-delete">
+									<input type="hidden" name="wall_action" value="delete" />
+									<input type="hidden" name="comment_id" value="{wall_comments.replies.COMMENT_ID}" />
+									<button type="submit" class="musicshare-wall-link musicshare-wall-link-danger" data-musicshare-confirm="{L_MUSICSHARE_WALL_DELETE_CONFIRM}">{L_DELETE}</button>
+									{S_FORM_TOKEN}
+								</form>
+								<!-- ENDIF -->
+							</div>
+
+							<!-- IF wall_comments.replies.S_CAN_MANAGE -->
+							<form method="post" action="{U_WALL_POST}" class="musicshare-wall-form musicshare-wall-hidden" id="musicshare-edit-{wall_comments.replies.COMMENT_ID}">
+								<input type="hidden" name="wall_action" value="edit" />
+								<input type="hidden" name="comment_id" value="{wall_comments.replies.COMMENT_ID}" />
+								<textarea name="wall_text" rows="2" maxlength="{WALL_MAXLENGTH}" required>{wall_comments.replies.RAW_TEXT}</textarea>
+								<p class="musicshare-wall-send">
+									<button type="submit" class="musicshare-btn musicshare-btn-primary">{L_SUBMIT}</button>
+									<button type="button" class="musicshare-btn" data-musicshare-close="musicshare-edit-{wall_comments.replies.COMMENT_ID}">{L_CANCEL}</button>
+								</p>
+								{S_FORM_TOKEN}
+							</form>
+
+							<!-- ENDIF -->
+						</div>
+					</li>
+					<!-- END replies -->
+				</ul>
+				<!-- ENDIF -->
+			</div>
+		</li>
+		<!-- END wall_comments -->
+	</ul>
+
+	<!--
+		Paginazione scritta a mano: pagination.html legge un blocco con
+		un nome fisso, gia' usato dalla lista dei brani di questa stessa
+		pagina. Due paginazioni diverse non possono chiamarsi uguale.
+	-->
+	<!-- IF .wall_pagination -->
+	<div class="pagination musicshare-wall-pages">
+		<ul>
+			<!-- BEGIN wall_pagination -->
+			<!-- IF wall_pagination.S_IS_PREV -->
+			<li class="previous"><a class="button button-icon-only" href="{wall_pagination.PAGE_URL}" role="button">{L_PREVIOUS}</a></li>
+			<!-- ELSEIF wall_pagination.S_IS_CURRENT -->
+			<li class="active"><span>{wall_pagination.PAGE_NUMBER}</span></li>
+			<!-- ELSEIF wall_pagination.S_IS_ELLIPSIS -->
+			<li class="ellipsis" role="separator"><span>{L_ELLIPSIS}</span></li>
+			<!-- ELSEIF wall_pagination.S_IS_NEXT -->
+			<li class="next"><a class="button button-icon-only" href="{wall_pagination.PAGE_URL}" role="button">{L_NEXT}</a></li>
+			<!-- ELSE -->
+			<li><a class="button" href="{wall_pagination.PAGE_URL}" role="button">{wall_pagination.PAGE_NUMBER}</a></li>
+			<!-- ENDIF -->
+			<!-- END wall_pagination -->
+		</ul>
+	</div>
+	<!-- ENDIF -->
+	<!-- ELSE -->
+	<p class="musicshare-empty">{L_MUSICSHARE_WALL_EMPTY}</p>
+	<!-- ENDIF -->
 	<!-- ENDIF -->
 </div>
 

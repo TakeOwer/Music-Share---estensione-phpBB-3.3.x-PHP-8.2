@@ -179,7 +179,8 @@ a.musicshare-genre-link:visited {
 }
 
 .musicshare-duration,
-.musicshare-plays {
+.musicshare-plays,
+.musicshare-downloads {
 	flex: 0 0 auto;
 	font-size: 0.85em;
 	color: #777;
@@ -585,6 +586,23 @@ a.musicshare-btn-danger:hover {
 	display: inline-block;
 	margin-top: 4px;
 	line-height: 1.5;
+}
+
+/* La regola qui sopra usa un id e per questo vinceva su
+   .musicshare-field .explain, che e' scritta con due classi: nei moduli
+   a campi impilati la spiegazione restava in linea accanto al campo, e
+   andava a capo solo dove il modello aveva un <br />. Da qui i tre
+   campi (licenza, BPM, tonalita') con il testo di fianco invece che
+   sotto.
+
+   Questa regola pareggia il conto aggiungendo l'id, cosi' la
+   spiegazione va a capo da sola e i <br /> nei modelli non servono
+   piu': sono stati tolti, perche' con un elemento di blocco
+   avrebbero lasciato una riga vuota. */
+#musicshare_upload .musicshare-field .explain,
+#musicshare_song_edit .musicshare-field .explain {
+	display: block;
+	margin-top: 5px;
 }
 
 .musicshare-section-heading {
@@ -1624,4 +1642,580 @@ ul.navlinks > li.musicshare-feed {
 	color: #8a5606;
 	font-size: 0.85em;
 	font-style: italic;
+}
+
+/* Collegamento "Aggiungi alla libreria" sotto gli allegati audio */
+.musicshare-attach-import {
+	display: inline-block;
+	margin-left: 8px;
+}
+
+.musicshare-attach-link,
+a.musicshare-attach-link:link,
+a.musicshare-attach-link:visited {
+	display: inline-block;
+	padding: 1px 9px;
+	border: 1px solid rgba(29, 185, 84, 0.5);
+	border-radius: 11px;
+	font-size: 0.85em;
+	text-decoration: none !important;
+	white-space: nowrap;
+}
+
+.musicshare-attach-link:hover {
+	background: rgba(29, 185, 84, 0.12);
+	border-color: #1db954;
+}
+
+.musicshare-attach-link .icon {
+	margin-right: 3px;
+}
+
+/* Pulsante che apre la discussione per un brano gia' in libreria.
+   Si distingue dagli altri perche' compie un'azione visibile a tutto il
+   forum: apre un argomento a nome di chi lo preme. */
+.musicshare-btn-publish {
+	border-color: rgba(21, 101, 192, 0.45) !important;
+	color: #1565c0 !important;
+}
+
+.musicshare-btn-publish:hover {
+	background: rgba(21, 101, 192, 0.12) !important;
+	border-color: #1565c0 !important;
+}
+
+/* Scelta del periodo della classifica */
+.musicshare-top-periods {
+	margin: -4px 0 10px;
+	font-size: 0.9em;
+}
+
+/* Come per i pulsanti qui sopra, il colore va dichiarato: senza, il
+   testo della pillola eredita quello dei collegamenti dello stile del
+   forum e su alcuni temi sparisce sullo sfondo chiaro. La pillola
+   attiva si leggeva lo stesso solo perche' il verde le impone il
+   bianco. */
+.musicshare-period,
+a.musicshare-period:link,
+a.musicshare-period:visited {
+	display: inline-block;
+	margin-right: 6px;
+	padding: 2px 11px;
+	border: 1px solid rgba(128, 128, 128, 0.35);
+	border-radius: 12px;
+	background: #f3f3f7;
+	color: #222 !important;
+	text-decoration: none !important;
+	opacity: .8;
+}
+
+a.musicshare-period:hover {
+	border-color: #1db954;
+	background: #e6e6ee;
+	color: #000 !important;
+	opacity: 1;
+}
+
+/* Questa regola deve pesare quanto quella di base qui sopra, altrimenti
+   il fondo verde e il testo bianco della pillola scelta perderebbero il
+   confronto con un selettore piu' specifico. */
+.musicshare-period-active,
+a.musicshare-period-active:link,
+a.musicshare-period-active:visited,
+a.musicshare-period-active:hover {
+	background: #1db954 !important;
+	border-color: #1db954 !important;
+	color: #fff !important;
+	opacity: 1;
+}
+
+/* Pulsante "segui" quando si sta gia' seguendo */
+.musicshare-btn-following {
+	background: rgba(29, 185, 84, 0.14) !important;
+	border-color: #1db954 !important;
+	color: #128a3e !important;
+}
+
+/* Licenza dichiarata dall'autore, accanto alle informazioni del brano */
+.musicshare-license {
+	padding: 0 6px;
+	border-radius: 9px;
+	background: rgba(21, 101, 192, 0.12);
+	color: #1565c0;
+	font-size: 0.9em;
+}
+
+/* Messaggio quando un elenco non ha nulla da mostrare */
+.musicshare-empty {
+	margin: 14px 0;
+	padding: 14px 16px;
+	border: 1px dashed rgba(128, 128, 128, 0.4);
+	border-radius: 6px;
+	text-align: center;
+	opacity: .8;
+	font-style: italic;
+}
+
+/* Barra delle azioni multiple nel Pannello Moderatore */
+.musicshare-bulk {
+	margin-top: 12px;
+	padding-top: 10px;
+	border-top: 1px solid rgba(128, 128, 128, 0.25);
+}
+
+/* Barra di spostamento fra libreria, preferiti, novita' e seguiti */
+.musicshare-subnav {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	margin: 0 0 14px;
+	padding-bottom: 12px;
+	border-bottom: 1px solid rgba(128, 128, 128, 0.22);
+}
+
+/* il ritorno alla libreria si distingue: e' l'unico che porta indietro */
+.musicshare-btn-back,
+a.musicshare-btn-back:link,
+a.musicshare-btn-back:visited {
+	background: rgba(128, 128, 128, 0.12);
+}
+
+/* ------------------------------------------------------------------
+   Pagina dell'autore
+   ------------------------------------------------------------------
+   Intestazione con avatar grande e riga di statistiche, nello stile
+   dell'estensione: colori e bordi restano quelli delle altre pagine,
+   così la pagina si posa su qualunque tema del forum invece di
+   imporre il proprio. */
+
+.musicshare-author {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 18px;
+	margin-bottom: 16px;
+}
+
+.musicshare-author-avatar {
+	flex: 0 0 auto;
+	width: 120px;
+	height: 120px;
+	border-radius: 50%;
+	overflow: hidden;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: rgba(128, 128, 128, 0.12);
+	border: 1px solid rgba(128, 128, 128, 0.25);
+}
+
+/* l'avatar di phpBB arriva come <img> con misure proprie: va ritagliato
+   nel cerchio, altrimenti le immagini rettangolari escono deformate */
+.musicshare-author-avatar img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	display: block;
+	max-width: none;
+	max-height: none;
+}
+
+.musicshare-author-avatar-empty {
+	font-size: 3em;
+	opacity: .45;
+	line-height: 1;
+}
+
+.musicshare-author-main {
+	flex: 1 1 260px;
+	min-width: 0;
+}
+
+.musicshare-author-label {
+	display: block;
+	font-size: 0.8em;
+	text-transform: uppercase;
+	letter-spacing: .08em;
+	opacity: .7;
+}
+
+.musicshare-author-name {
+	margin: 2px 0 6px;
+	font-size: 2em;
+	line-height: 1.15;
+	border-bottom: none;
+	padding-bottom: 0;
+	word-wrap: break-word;
+}
+
+.musicshare-author-meta {
+	margin: 0 0 10px;
+	color: #777;
+	font-size: 0.92em;
+}
+
+.musicshare-author-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	margin: 0;
+}
+
+.musicshare-author-explain {
+	margin: 6px 0 0;
+}
+
+/* Riga delle statistiche: numero grande sopra, etichetta piccola sotto.
+   Va a capo da sola sugli schermi stretti. */
+.musicshare-author-stats {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+	list-style: none;
+	margin: 0 0 16px;
+	padding: 0;
+}
+
+.musicshare-author-stats li {
+	flex: 1 1 96px;
+	text-align: center;
+	padding: 10px 8px;
+	border: 1px solid rgba(128, 128, 128, 0.22);
+	border-radius: 6px;
+	background: rgba(128, 128, 128, 0.06);
+}
+
+.musicshare-stat-value {
+	display: block;
+	font-size: 1.5em;
+	font-weight: bold;
+	line-height: 1.1;
+}
+
+.musicshare-stat-label {
+	display: block;
+	font-size: 0.8em;
+	opacity: .75;
+	margin-top: 2px;
+}
+
+/* sotto i 500 px sei caselle in fila diventano illeggibili: due per riga */
+@media (max-width: 500px) {
+	.musicshare-author-stats li {
+		flex: 1 1 40%;
+	}
+
+	.musicshare-author {
+		gap: 12px;
+	}
+
+	.musicshare-author-avatar {
+		width: 84px;
+		height: 84px;
+	}
+
+	.musicshare-author-name {
+		font-size: 1.5em;
+	}
+}
+
+/* ------------------------------------------------------------------
+   Bacheca dell'autore
+   ------------------------------------------------------------------
+   Schede dei commenti, con le risposte rientrate sotto. Il testo è già
+   passato per il formattatore di phpBB, quindi può contenere di tutto:
+   l'altezza non è limitata, perché qui il commento si legge per intero
+   e non c'è nessun altro posto dove andarlo a leggere. */
+
+.musicshare-wall {
+	list-style: none;
+	margin: 0 0 12px;
+	padding: 0;
+}
+
+.musicshare-wall-count {
+	font-size: 0.7em;
+	vertical-align: middle;
+	opacity: .7;
+}
+
+.musicshare-wall-card {
+	display: flex;
+	gap: 10px;
+	padding: 10px 12px;
+	margin-bottom: 8px;
+	border: 1px solid rgba(128, 128, 128, 0.22);
+	border-radius: 8px;
+	background: rgba(128, 128, 128, 0.05);
+}
+
+/* i messaggi dell'autore della pagina si distinguono: è casa sua */
+.musicshare-wall-card-author {
+	border-left: 3px solid #1db954;
+}
+
+/* Risposte: rientrate e un filo più piccole, così si vede a colpo
+   d'occhio che dipendono dal commento sopra. Un solo livello. */
+.musicshare-wall-replies {
+	margin: 10px 0 0;
+	padding-left: 18px;
+	border-left: 2px solid rgba(128, 128, 128, 0.18);
+}
+
+.musicshare-wall-replies .musicshare-wall-card {
+	padding: 8px 10px;
+	background: transparent;
+}
+
+.musicshare-wall-replies .musicshare-wall-avatar {
+	width: 30px;
+	height: 30px;
+}
+
+.musicshare-wall-avatar {
+	flex: 0 0 auto;
+	width: 40px;
+	height: 40px;
+	border-radius: 50%;
+	overflow: hidden;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: rgba(128, 128, 128, 0.15);
+}
+
+.musicshare-wall-avatar img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	display: block;
+	max-width: none;
+	max-height: none;
+}
+
+.musicshare-wall-avatar-empty {
+	opacity: .4;
+}
+
+.musicshare-wall-body {
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+.musicshare-wall-head {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	gap: 8px;
+	margin-bottom: 3px;
+}
+
+.musicshare-wall-author {
+	font-weight: bold;
+}
+
+.musicshare-wall-date {
+	font-size: 0.85em;
+	color: #777;
+}
+
+.musicshare-wall-edited {
+	font-size: 0.85em;
+	color: #777;
+	font-style: italic;
+	opacity: .8;
+}
+
+.musicshare-wall-text {
+	display: block;
+	word-wrap: break-word;
+	overflow-wrap: break-word;
+}
+
+.musicshare-wall-text img {
+	max-width: 100%;
+	height: auto;
+}
+
+/* Rispondi e Modifica: sono pulsanti veri per la tastiera e per chi
+   usa un lettore di schermo, ma vestiti da collegamento. */
+.musicshare-wall-tools {
+	margin: 6px 0 0;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px;
+}
+
+.musicshare-wall-link {
+	background: none;
+	border: 0;
+	padding: 0;
+	font: inherit;
+	font-size: 0.85em;
+	color: #1db954;
+	cursor: pointer;
+	text-decoration: underline;
+}
+
+.musicshare-wall-link:hover {
+	color: #128a3e;
+}
+
+/* l'eliminazione si distingue dagli altri due comandi: e' l'unica che
+   non si puo' annullare */
+.musicshare-wall-link-danger {
+	color: #c0392b;
+}
+
+.musicshare-wall-link-danger:hover {
+	color: #922b21;
+}
+
+.musicshare-wall-notice {
+	margin: 0 0 12px;
+}
+
+.musicshare-wall-form {
+	margin: 0 0 14px;
+}
+
+/* nascosti finché non si preme Rispondi o Modifica; senza il codice
+   JavaScript la classe non viene mai tolta, per questo i moduli
+   nascosti sono solo quelli in più e mai l'unico modo di scrivere */
+.musicshare-wall-hidden {
+	display: none;
+}
+
+.musicshare-wall-hidden.musicshare-wall-open {
+	display: block;
+	margin-top: 8px;
+}
+
+.musicshare-wall-form textarea {
+	width: 100%;
+	box-sizing: border-box;
+	padding: 8px;
+	border: 1px solid rgba(128, 128, 128, 0.35);
+	border-radius: 6px;
+	font-family: inherit;
+	font-size: 1em;
+	resize: vertical;
+}
+
+.musicshare-wall-send {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 10px;
+	margin: 8px 0 0;
+}
+
+/* Reazioni ai commenti: mi piace, non mi piace, cuore. I conteggi si
+   vedono sempre; il pulsante è spento per gli ospiti e per chi ha
+   scritto il commento, e in quel caso non cambia aspetto al passaggio
+   del mouse, così si capisce che non è premibile. */
+.musicshare-reactions {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	margin-left: 4px;
+}
+
+.musicshare-react {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	padding: 1px 8px;
+	border: 1px solid rgba(128, 128, 128, 0.3);
+	border-radius: 12px;
+	background: transparent;
+	font: inherit;
+	font-size: 0.85em;
+	line-height: 1.6;
+	color: inherit;
+	cursor: pointer;
+}
+
+.musicshare-react:hover:not(:disabled) {
+	border-color: #1db954;
+}
+
+.musicshare-react:disabled {
+	cursor: default;
+	opacity: .55;
+}
+
+.musicshare-react-icon {
+	line-height: 1;
+}
+
+.musicshare-react-count {
+	min-width: 8px;
+	text-align: right;
+}
+
+/* la reazione già messa resta accesa: premendola di nuovo si toglie */
+.musicshare-react-active.musicshare-react-like {
+	border-color: #1db954;
+	background: rgba(29, 185, 84, 0.14);
+}
+
+.musicshare-react-active.musicshare-react-dislike {
+	border-color: #d08b00;
+	background: rgba(208, 139, 0, 0.14);
+}
+
+.musicshare-react-active.musicshare-react-heart {
+	border-color: #c0392b;
+	background: rgba(192, 57, 43, 0.12);
+}
+
+.musicshare-react-heart .musicshare-react-icon {
+	color: #c0392b;
+}
+
+/* la frase dentro il riquadro di conferma di phpBB: senza margine
+   resterebbe attaccata al titolo e ai pulsanti */
+#phpbb_confirm .musicshare-confirm-text {
+	margin: 10px 0;
+}
+
+/* il modulo vive dentro la riga dei comandi: non deve occupare spazio
+   proprio ne' spingere a capo gli altri collegamenti */
+.musicshare-wall-delete {
+	display: inline;
+	margin: 0;
+}
+
+.musicshare-wall-pages {
+	margin-bottom: 14px;
+}
+
+/* ------------------------------------------------------------------
+   Celle con più pulsanti
+   ------------------------------------------------------------------
+   Nelle tabelle la colonna delle opzioni aveva una larghezza fissa
+   troppo stretta: i pulsanti non ci stavano e andavano a capo uno
+   sotto l'altro. Tolta la larghezza fissa, questa regola li tiene in
+   riga e distanziati, lasciandoli andare a capo solo quando lo schermo
+   è davvero stretto.
+
+   Il nome e' "cell-actions" e non "actions" perche' quest'ultimo era
+   gia' preso dal piede dei moduli di caricamento, che ha bordo
+   superiore e spaziatura propria: riusarlo metteva una riga di
+   separazione dentro ogni cella della tabella. */
+
+.musicshare-cell-actions {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 6px;
+	white-space: nowrap;
+}
+
+/* i pulsanti in queste celle non si allungano né si restringono:
+   ognuno resta della larghezza del proprio testo */
+.musicshare-cell-actions .musicshare-btn {
+	flex: 0 0 auto;
+	margin: 0;
 }

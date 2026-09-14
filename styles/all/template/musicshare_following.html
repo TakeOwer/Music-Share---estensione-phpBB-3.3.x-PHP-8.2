@@ -1,0 +1,27 @@
+<!-- INCLUDE overall_header.html -->
+
+<div class="musicshare-page musicshare-panel">
+	<h2>{L_MUSICSHARE_FOLLOWING_NEWS}</h2>
+
+	<!-- INCLUDE musicshare_nav.html -->
+	<p class="musicshare-meta">
+		{SONGS_SUMMARY}
+		<!-- IF FOLLOWING --> &mdash; {L_MUSICSHARE_FOLLOWING_COUNT}: {FOLLOWING}<!-- ENDIF -->
+	</p>
+
+	<!-- IF not .songs -->
+	<p class="musicshare-empty">
+		<!-- IF FOLLOWING -->{L_MUSICSHARE_FOLLOWING_EMPTY}<!-- ELSE -->{L_MUSICSHARE_FOLLOWING_NOBODY}<!-- ENDIF -->
+	</p>
+	<!-- ENDIF -->
+
+	<!-- INCLUDE musicshare_song_list.html -->
+
+	<!-- IF .pagination -->
+	<div class="pagination">
+		<!-- INCLUDE pagination.html -->
+	</div>
+	<!-- ENDIF -->
+</div>
+
+<!-- INCLUDE overall_footer.html -->

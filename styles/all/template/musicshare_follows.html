@@ -1,0 +1,38 @@
+<!-- INCLUDE overall_header.html -->
+
+<div class="musicshare-page musicshare-panel">
+	<h2>{L_MUSICSHARE_FOLLOWS_LIST}</h2>
+
+	<!-- INCLUDE musicshare_nav.html -->
+	<!-- IF .follows -->
+	<table class="table1">
+		<thead>
+			<tr>
+				<th>{L_MUSICSHARE_UPLOADER}</th>
+				<th style="width: 110px;">{L_MUSICSHARE_PROFILE_SONGS}</th>
+				<th style="width: 170px;">{L_MUSICSHARE_FOLLOW_SINCE}</th>
+				<th>{L_OPTIONS}</th>
+			</tr>
+		</thead>
+		<tbody>
+			<!-- BEGIN follows -->
+			<tr>
+				<td>{follows.USERNAME}</td>
+				<td style="text-align:center;">{follows.SONGS}</td>
+				<td>{follows.FOLLOW_DATE}</td>
+				<td class="musicshare-cell-actions">
+					<a href="{follows.U_SONGS}" class="musicshare-btn">{L_MUSICSHARE_SEE_SONGS}</a>
+					<!-- IF follows.U_CONTACT --><a href="{follows.U_CONTACT}" class="musicshare-btn" title="{L_MUSICSHARE_CONTACT}"><i class="icon fa-envelope-o fa-fw" aria-hidden="true"></i></a><!-- ENDIF -->
+					<!-- IF follows.U_WALL --><a href="{follows.U_WALL}" class="musicshare-btn" title="{L_MUSICSHARE_WALL}"><i class="icon fa-comments-o fa-fw" aria-hidden="true"></i><!-- IF follows.WALL_COUNT --> {follows.WALL_COUNT}<!-- ENDIF --></a><!-- ENDIF -->
+					<a href="{follows.U_UNFOLLOW}" class="musicshare-btn musicshare-btn-danger">{L_MUSICSHARE_UNFOLLOW}</a>
+				</td>
+			</tr>
+			<!-- END follows -->
+		</tbody>
+	</table>
+	<!-- ELSE -->
+	<p class="musicshare-empty">{L_MUSICSHARE_FOLLOWING_NOBODY}</p>
+	<!-- ENDIF -->
+</div>
+
+<!-- INCLUDE overall_footer.html -->

@@ -1,8 +1,14 @@
 <!-- INCLUDE overall_header.html -->
 
 <div class="musicshare-page musicshare-panel">
-	<h2>{GENRE_NAME}</h2>
-	<p class="musicshare-meta">{SONGS_SUMMARY}<!-- IF S_CAN_UPLOAD --> &mdash; <a href="{U_UPLOAD}">{L_MUSICSHARE_UPLOAD_TITLE}</a><!-- ENDIF --></p>
+	<h2>{L_MUSICSHARE_LIKED}</h2>
+
+	<!-- INCLUDE musicshare_nav.html -->
+	<p class="musicshare-meta">{SONGS_SUMMARY}</p>
+
+	<!-- IF not .songs -->
+	<p class="musicshare-empty">{L_MUSICSHARE_LIKED_EMPTY}</p>
+	<!-- ENDIF -->
 
 	<!-- INCLUDE musicshare_song_list.html -->
 

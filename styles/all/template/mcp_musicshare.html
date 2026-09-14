@@ -25,10 +25,12 @@
 		<table class="table1">
 			<thead>
 				<tr>
+					<th style="width:24px;"><input type="checkbox" id="ms_check_all" title="{L_MARK_ALL}" /></th>
 					<th>{L_MUSICSHARE_SONG_TITLE}</th>
 					<th>{L_MUSICSHARE_SONG_ARTIST}</th>
 					<th>{L_MUSICSHARE_UPLOADED_BY}</th>
 					<th>{L_MUSICSHARE_UPLOAD_DATE}</th>
+					<th style="text-align:center;">{L_MUSICSHARE_STATS}</th>
 					<th style="text-align:center;">{L_MUSICSHARE_STATUS}</th>
 					<th style="text-align:center;">{L_MUSICSHARE_ACTIONS}</th>
 				</tr>
@@ -36,8 +38,11 @@
 			<tbody>
 				<!-- BEGIN songs -->
 				<tr>
+					<td style="text-align:center;"><input type="checkbox" name="song_ids[]" value="{songs.SONG_ID}" class="ms-song-check" /></td>
 					<td>
 						<a href="{songs.U_SONG}">{songs.TITLE}</a>
+						<!-- IF songs.U_TOPIC --> <a href="{songs.U_TOPIC}" title="{L_MUSICSHARE_DISCUSS}"><i class="icon fa-comments fa-fw" aria-hidden="true"></i></a><!-- ENDIF -->
+						<!-- IF songs.U_CONTACT --> <a href="{songs.U_CONTACT}" title="{L_MUSICSHARE_CONTACT}"><i class="icon fa-envelope-o fa-fw" aria-hidden="true"></i></a><!-- ENDIF -->
 						<!-- IF songs.S_RECOGNIZED -->
 						<br /><span class="musicshare-mcp-flag">{L_MUSICSHARE_RECOGNIZED_FLAG}: {songs.RECOGNIZED_INFO}</span>
 						<!-- ENDIF -->
@@ -45,6 +50,11 @@
 					<td>{songs.ARTIST}</td>
 					<td>{songs.USERNAME}</td>
 					<td>{songs.UPLOAD_DATE}</td>
+					<td style="text-align:center;">
+						<i class="icon fa-headphones fa-fw" aria-hidden="true"></i> {songs.PLAY_COUNT}
+						&middot;
+						<i class="icon fa-download fa-fw" aria-hidden="true"></i> {songs.DOWNLOAD_COUNT}
+					</td>
 					<td style="text-align:center;">
 						<!-- IF songs.S_APPROVED -->{L_MUSICSHARE_APPROVED}<!-- ELSE -->{L_MUSICSHARE_PENDING}<!-- ENDIF -->
 					</td>
@@ -65,6 +75,19 @@
 		<p><strong><!-- IF S_PENDING_MODE -->{L_MUSICSHARE_NO_PENDING_SONGS}<!-- ELSE -->{L_MUSICSHARE_NO_SONGS}<!-- ENDIF --></strong></p>
 		<!-- ENDIF -->
 
+		<!-- IF .songs -->
+		<fieldset class="display-actions musicshare-bulk">
+			<label for="bulk_action">{L_MCP_MUSICSHARE_BULK}:</label>
+			<select id="bulk_action" name="bulk_action">
+				<option value="">{L_MCP_MUSICSHARE_BULK_CHOOSE}</option>
+				<option value="approve">{L_MUSICSHARE_APPROVE}</option>
+				<option value="unapprove">{L_MUSICSHARE_UNAPPROVE}</option>
+			</select>
+			<input type="submit" value="{L_SUBMIT}" class="button2" />
+			<br /><span class="explain">{L_MCP_MUSICSHARE_BULK_EXPLAIN}</span>
+		</fieldset>
+		<!-- ENDIF -->
+
 		{S_FORM_TOKEN}
 	</div>
 </div>
@@ -76,5 +99,24 @@
 <!-- ENDIF -->
 
 </form>
+
+<script>
+// Seleziona o deseleziona tutte le righe con una sola casella.
+document.addEventListener('DOMContentLoaded', function () {
+	var tutte = document.getElementById('ms_check_all');
+
+	if (!tutte) {
+		return;
+	}
+
+	tutte.addEventListener('change', function () {
+		var caselle = document.querySelectorAll('.ms-song-check');
+
+		Array.prototype.forEach.call(caselle, function (c) {
+			c.checked = tutte.checked;
+		});
+	});
+});
+</script>
 
 <!-- INCLUDE mcp_footer.html -->

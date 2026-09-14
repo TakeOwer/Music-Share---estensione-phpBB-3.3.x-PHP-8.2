@@ -48,13 +48,14 @@
 			<span class="musicshare-title">{songs.TITLE}</span>
 			<span class="musicshare-artist">{songs.ARTIST}<!-- IF songs.ALBUM --> &mdash; {songs.ALBUM}<!-- ENDIF --><!-- IF songs.YEAR --> ({songs.YEAR})<!-- ENDIF --></span>
 			<span class="musicshare-uploader">
-				{L_MUSICSHARE_UPLOAD_DATE}: {songs.UPLOAD_DATE}<!-- IF songs.GENRES --> &middot; {L_MUSICSHARE_GENRES}: {songs.GENRES}<!-- ENDIF -->
+				{L_MUSICSHARE_UPLOAD_DATE}: {songs.UPLOAD_DATE}<!-- IF songs.GENRES --> &middot; {L_MUSICSHARE_GENRES}: {songs.GENRES}<!-- ENDIF --><!-- IF songs.QUALITY --> &middot; {songs.QUALITY}<!-- ENDIF -->
 			<!-- IF songs.DESCRIPTION --><span class="musicshare-description">{songs.DESCRIPTION}</span><!-- ENDIF -->
 				&middot; <!-- IF songs.S_ALLOW_DOWNLOAD -->{L_MUSICSHARE_DOWNLOAD_ON}<!-- ELSE -->{L_MUSICSHARE_DOWNLOAD_OFF}<!-- ENDIF -->
 			</span>
 		</span>
 		<span class="musicshare-duration">{songs.DURATION}</span>
 		<span class="musicshare-plays" title="{songs.PLAY_COUNT_TEXT}"><i class="icon fa-headphones fa-fw" aria-hidden="true"></i> {songs.PLAY_COUNT}</span>
+		<span class="musicshare-downloads" title="{L_MUSICSHARE_DOWNLOADS}"><i class="icon fa-download fa-fw" aria-hidden="true"></i> {songs.DOWNLOAD_COUNT}</span>
 		<span class="musicshare-duration">{songs.FILE_SIZE_MB} MB</span>
 		<span class="musicshare-duration">
 			<!-- IF songs.APPROVED -->
@@ -64,6 +65,9 @@
 			<!-- ENDIF -->
 		</span>
 		<span class="musicshare-row-actions">
+			<!-- IF songs.U_TOPIC --><a href="{songs.U_TOPIC}" class="musicshare-btn" title="{L_MUSICSHARE_DISCUSS}"><i class="icon fa-comments fa-fw" aria-hidden="true"></i></a><!-- ENDIF -->
+			<!-- IF songs.U_PUBLISH --><a href="{songs.U_PUBLISH}" class="musicshare-btn musicshare-btn-publish" title="{L_MUSICSHARE_PUBLISH_TOPIC}"><i class="icon fa-bullhorn fa-fw" aria-hidden="true"></i></a><!-- ENDIF -->
+			<!-- IF songs.U_CONTACT --><a href="{songs.U_CONTACT}" class="musicshare-btn" title="{L_MUSICSHARE_CONTACT}"><i class="icon fa-envelope-o fa-fw" aria-hidden="true"></i></a><!-- ENDIF -->
 			<!-- IF songs.S_CAN_DOWNLOAD -->
 			<a href="{songs.U_DOWNLOAD}" class="musicshare-btn" title="{L_MUSICSHARE_DOWNLOAD}">&#8681;</a>
 			<!-- ENDIF -->

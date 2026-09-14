@@ -1726,6 +1726,201 @@
 		}
 	});
 
+	// Il testo finisce dentro codice HTML costruito a mano: va protetto,
+	// altrimenti una stringa di lingua con un < o una virgoletta
+	// romperebbe il riquadro.
+	function escapeHtml(valore) {
+		return String(valore === null || valore === undefined ? '' : valore)
+			.replace(/&/g, '&amp;')
+			.replace(/</g, '&lt;')
+			.replace(/>/g, '&gt;')
+			.replace(/"/g, '&quot;')
+			.replace(/'/g, '&#39;');
+	}
+
+	/**
+	 * Reazione a un commento della bacheca. Stessa forma del voto sui
+	 * brani: si manda il tipo, si ricevono i conteggi aggiornati e si
+	 * riscrivono i tre pulsanti di quel commento.
+	 *
+	 * @param HTMLElement gruppo contenitore .musicshare-reactions
+	 * @param string tipo 1, 2 o 3
+	 * @return void
+	 */
+	function sendReaction(gruppo, tipo) {
+		if (!cfg.ajaxWallReact) {
+			return;
+		}
+
+		var commentId = gruppo.getAttribute('data-comment-id');
+		var body = 'comment_id=' + encodeURIComponent(commentId) +
+			'&reaction=' + encodeURIComponent(tipo) +
+			'&hash=' + encodeURIComponent(cfg.ajaxHash || '');
+
+		fetch(cfg.ajaxWallReact, {
+			method: 'POST',
+			credentials: 'same-origin',
+			headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+			body: body
+		})
+			.then(function (res) { return res.json(); })
+			.then(function (data) {
+				if (!data || !data.success) {
+					if (data && data.message) {
+						avvisa(data.message);
+					}
+					return;
+				}
+
+				applyReactions(gruppo, data);
+			})
+			.catch(function () {
+				// rete non disponibile: la reazione non viene registrata
+			});
+	}
+
+	function applyReactions(gruppo, data) {
+		var conteggi = data.counts || {};
+		var mie = data.mine || [];
+
+		Array.prototype.forEach.call(gruppo.querySelectorAll('.musicshare-react'), function (btn) {
+			var tipo = btn.getAttribute('data-reaction');
+			var numero = btn.querySelector('.musicshare-react-count');
+
+			if (numero) {
+				numero.textContent = String(conteggi[tipo] || 0);
+			}
+
+			// mie arriva come elenco di numeri, tipo come testo
+			btn.classList.toggle('musicshare-react-active', mie.indexOf(parseInt(tipo, 10)) !== -1);
+		});
+	}
+
+	// Bacheca: i moduli di risposta e di modifica partono nascosti e si
+	// aprono al clic. È solo apertura e chiusura, nessuna chiamata al
+	// server: se questo codice non parte, i moduli restano visibili e
+	// funzionano lo stesso.
+	document.addEventListener('click', function (e) {
+		var reazione = e.target.closest ? e.target.closest('.musicshare-react') : null;
+
+		if (reazione && !reazione.disabled) {
+			var gruppo = reazione.closest('.musicshare-reactions');
+
+			if (gruppo) {
+				e.preventDefault();
+				sendReaction(gruppo, reazione.getAttribute('data-reaction'));
+			}
+
+			return;
+		}
+
+		var toggle = e.target.closest ? e.target.closest('[data-musicshare-toggle]') : null;
+
+		if (toggle) {
+			// un clic puo' aprire piu' di un blocco: Modifica apre sia il
+			// modulo di modifica sia quello di eliminazione, che sono due
+			// moduli distinti proprio per non confondere le due azioni
+			var nomi = (toggle.getAttribute('data-musicshare-toggle') || '').split(/\s+/);
+			var primo = null;
+
+			nomi.forEach(function (nome) {
+				var bersaglio = nome ? document.getElementById(nome) : null;
+
+				if (bersaglio) {
+					bersaglio.classList.toggle('musicshare-wall-open');
+
+					if (primo === null) {
+						primo = bersaglio;
+					}
+				}
+			});
+
+			if (primo) {
+				e.preventDefault();
+				var campo = primo.querySelector('textarea');
+
+				if (campo && primo.classList.contains('musicshare-wall-open')) {
+					campo.focus();
+				}
+			}
+
+			return;
+		}
+
+		// Annulla: chiude il pannello e riporta il campo com'era. Per la
+		// modifica significa il testo salvato, per la risposta il vuoto:
+		// in entrambi i casi è il valore che il modello ha scritto nel
+		// codice, quindi basta rileggerlo.
+		var chiudi = e.target.closest ? e.target.closest('[data-musicshare-close]') : null;
+
+		if (chiudi) {
+			var pannello = document.getElementById(chiudi.getAttribute('data-musicshare-close'));
+
+			if (pannello) {
+				e.preventDefault();
+				pannello.classList.remove('musicshare-wall-open');
+
+				var testo = pannello.querySelector('textarea');
+
+				if (testo) {
+					testo.value = testo.defaultValue;
+				}
+			}
+
+			return;
+		}
+
+		// Eliminazione di un commento: una conferma, perché sparisce
+		// anche tutto quello che gli hanno risposto sotto. Si usa il
+		// riquadro di phpBB; window.confirm resta solo come rete di
+		// sicurezza, se per qualche motivo il riquadro non c'è.
+		var conferma = e.target.closest ? e.target.closest('[data-musicshare-confirm]') : null;
+
+		if (!conferma) {
+			return;
+		}
+
+		var messaggio = conferma.getAttribute('data-musicshare-confirm');
+		var modulo = conferma.form || conferma.closest('form');
+
+		// Il riquadro di phpBB vive dentro #phpbb_confirm, che sta nel piè
+		// di pagina dello stile. Se uno stile non lo include, phpbb.confirm
+		// non mostrerebbe nulla e l'eliminazione resterebbe bloccata: per
+		// questo si controlla che l'elemento ci sia davvero.
+		var riquadro = document.getElementById('phpbb_confirm');
+
+		if (riquadro && window.phpbb && typeof phpbb.confirm === 'function' && modulo) {
+			e.preventDefault();
+
+			// phpbb.confirm non vuole un testo: vuole il codice completo
+			// del modulo, titolo e pulsanti compresi, perché si aggancia
+			// agli <input type="button"> che trova dentro. Passandogli
+			// solo la frase si ottiene un riquadro bianco senza pulsanti.
+			var html = '<form action="#" method="post">' +
+				'<h3>' + escapeHtml(lang.confirmTitle || '') + '</h3>' +
+				'<p class="musicshare-confirm-text">' + escapeHtml(messaggio) + '</p>' +
+				'<fieldset class="submit-buttons">' +
+					'<input type="button" name="confirm" class="button2" value="' + escapeHtml(lang.yes || 'OK') + '">&nbsp;' +
+					'<input type="button" name="cancel" class="button2" value="' + escapeHtml(lang.no || 'Annulla') + '">' +
+				'</fieldset>' +
+				'</form>';
+
+			phpbb.confirm(html, function (conferma_data) {
+				if (conferma_data) {
+					// l'invio diretto salta questo stesso gestore, quindi
+					// non si ricasca nella conferma all'infinito
+					modulo.submit();
+				}
+			}, false);
+
+			return;
+		}
+
+		if (!window.confirm(messaggio)) {
+			e.preventDefault();
+		}
+	});
+
 	// Comandi e barra di avanzamento su ogni riga presente nella pagina
 	decorateRows();
 

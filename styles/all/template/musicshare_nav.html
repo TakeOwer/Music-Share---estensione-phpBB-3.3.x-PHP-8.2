@@ -1,0 +1,22 @@
+<!--
+	Barra di spostamento fra le pagine personali: libreria, preferiti,
+	novita' e utenti seguiti. Il collegamento alla pagina in cui ci si
+	trova non viene mostrato, perche' portare a se stessi non serve.
+-->
+<p class="musicshare-subnav">
+	<a href="{U_BROWSE}" class="musicshare-btn musicshare-btn-back">
+		<i class="icon fa-arrow-left fa-fw" aria-hidden="true"></i> {L_MUSICSHARE_BACK_LIBRARY}
+	</a>
+
+	<!-- IF U_LIKED -->
+	<a href="{U_LIKED}" class="musicshare-btn"><i class="icon fa-thumbs-o-up fa-fw" aria-hidden="true"></i> {L_MUSICSHARE_LIKED}</a>
+	<!-- ENDIF -->
+
+	<!-- IF U_FOLLOWING_NEWS -->
+	<a href="{U_FOLLOWING_NEWS}" class="musicshare-btn"><i class="icon fa-bell-o fa-fw" aria-hidden="true"></i> {L_MUSICSHARE_FOLLOWING_NEWS}</a>
+	<!-- ENDIF -->
+
+	<!-- IF U_FOLLOWS_LIST -->
+	<a href="{U_FOLLOWS_LIST}" class="musicshare-btn"><i class="icon fa-users fa-fw" aria-hidden="true"></i> {L_MUSICSHARE_FOLLOWS_LIST}</a>
+	<!-- ENDIF -->
+</p>

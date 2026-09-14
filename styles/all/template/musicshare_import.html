@@ -1,0 +1,106 @@
+<!-- INCLUDE overall_header.html -->
+
+<h2>{L_MUSICSHARE_ATTACH_IMPORT}</h2>
+
+<!-- IF S_IMPORTED -->
+<div class="musicshare-notice musicshare-notice-success">
+	<i class="icon fa-check-circle fa-fw" aria-hidden="true"></i>
+	<span class="musicshare-notice-text">
+		{L_MUSICSHARE_IMPORT_DONE}
+		<br /><a href="{U_MY_SONGS}">{L_MUSICSHARE_MY_SONGS}</a> &middot;
+		<a href="{U_LIBRARY}">{L_MUSICSHARE_NAV_LINK}</a>
+	</span>
+</div>
+
+<!-- ELSEIF S_ALREADY_IMPORTED -->
+<div class="musicshare-notice musicshare-notice-info">
+	<i class="icon fa-info-circle fa-fw" aria-hidden="true"></i>
+	<span class="musicshare-notice-text">
+		{L_MUSICSHARE_IMPORT_ALREADY}
+		<br /><a href="{U_MY_SONGS}">{L_MUSICSHARE_MY_SONGS}</a>
+	</span>
+</div>
+
+<!-- ELSE -->
+
+<!-- INCLUDE musicshare_disclaimer.html -->
+
+<!-- IF S_ERROR -->
+<div class="musicshare-notice musicshare-notice-error">
+	<i class="icon fa-exclamation-triangle fa-fw" aria-hidden="true"></i>
+	<span class="musicshare-notice-text">{ERROR_MESSAGE}</span>
+</div>
+<!-- ENDIF -->
+
+<form method="post" action="{S_FORM_ACTION}">
+	<fieldset>
+		<dl>
+			<dt>{L_MUSICSHARE_IMPORT_FILE}:</dt>
+			<dd><strong>{ATTACH_NAME}</strong> &mdash; {ATTACH_SIZE} MB
+			<br /><span class="explain">{L_MUSICSHARE_IMPORT_FILE_EXPLAIN}</span></dd>
+		</dl>
+		<dl>
+			<dt><label for="song_title">{L_MUSICSHARE_SONG_TITLE}:</label></dt>
+			<dd><input type="text" id="song_title" name="song_title" value="{SUGGESTED_TITLE}" class="inputbox" />
+			<br /><span class="explain">{L_MUSICSHARE_TITLE_EXPLAIN}</span></dd>
+		</dl>
+		<dl>
+			<dt><label for="song_artist">{L_MUSICSHARE_SONG_ARTIST}:</label></dt>
+			<dd><input type="text" id="song_artist" name="song_artist" value="{SUGGESTED_ARTIST}" class="inputbox" />
+			<br /><span class="explain">{L_MUSICSHARE_ARTIST_EXPLAIN}</span></dd>
+		</dl>
+		<dl>
+			<dt><label for="song_album">{L_MUSICSHARE_SONG_ALBUM}:</label></dt>
+			<dd><input type="text" id="song_album" name="song_album" value="{SUGGESTED_ALBUM}" class="inputbox" />
+			<br /><span class="explain">{L_MUSICSHARE_TAG_FALLBACK}</span></dd>
+		</dl>
+		<dl>
+			<dt><label for="song_year">{L_MUSICSHARE_SONG_YEAR}:</label></dt>
+			<dd><input type="number" id="song_year" name="song_year" value="{SUGGESTED_YEAR}" min="0" max="2100" class="inputbox narrow" />
+			<br /><span class="explain">{L_MUSICSHARE_TAG_FALLBACK}</span></dd>
+		</dl>
+
+		<!-- IF S_DESCRIPTIONS -->
+		<dl>
+			<dt><label for="song_description">{L_MUSICSHARE_DESCRIPTION}:</label></dt>
+			<dd><textarea id="song_description" name="song_description" rows="3" maxlength="{DESCRIPTION_MAX}"></textarea>
+			<br /><span class="explain">{L_MUSICSHARE_DESCRIPTION_EXPLAIN}</span></dd>
+		</dl>
+		<!-- ENDIF -->
+
+		<!-- IF S_DOWNLOAD_ENABLED -->
+		<dl>
+			<dt>{L_MUSICSHARE_ALLOW_DOWNLOAD_SONG}:</dt>
+			<dd><label><input type="checkbox" name="allow_download" value="1" checked="checked" /> {L_MUSICSHARE_ALLOW_DOWNLOAD_SONG_YES}</label>
+			<br /><span class="explain">{L_MUSICSHARE_ALLOW_DOWNLOAD_SONG_EXPLAIN}</span></dd>
+		</dl>
+		<!-- ENDIF -->
+
+		<dl>
+			<dt>{L_MUSICSHARE_GENRES}:</dt>
+			<dd>
+				<div class="musicshare-genre-picker">
+					<!-- BEGIN genre_groups -->
+					<fieldset class="musicshare-genre-group">
+						<legend>{genre_groups.CATEGORY_NAME}</legend>
+						<!-- BEGIN genres -->
+						<label class="musicshare-genre-check"><input type="checkbox" name="genre_ids[]" value="{genre_groups.genres.GENRE_ID}" /> {genre_groups.genres.GENRE_NAME}</label>
+						<!-- END genres -->
+					</fieldset>
+					<!-- END genre_groups -->
+				</div>
+				<br /><span class="explain">{L_MUSICSHARE_GENRES_EXPLAIN}</span>
+			</dd>
+		</dl>
+
+		<dl>
+			<dd>
+				<input type="submit" name="submit" value="{L_MUSICSHARE_IMPORT_SUBMIT}" class="button1" />
+				{S_FORM_TOKEN}
+			</dd>
+		</dl>
+	</fieldset>
+</form>
+<!-- ENDIF -->
+
+<!-- INCLUDE overall_footer.html -->

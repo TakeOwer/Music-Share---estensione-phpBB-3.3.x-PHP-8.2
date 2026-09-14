@@ -7,25 +7,25 @@
 		<div class="musicshare-field">
 			<label for="song_title">{L_MUSICSHARE_SONG_TITLE}</label>
 			<input type="text" id="song_title" name="song_title" value="{EDIT_TITLE}" class="inputbox" />
-			<br /><span class="explain">{L_MUSICSHARE_EDIT_FIELD_EXPLAIN}</span>
+			<span class="explain">{L_MUSICSHARE_EDIT_FIELD_EXPLAIN}</span>
 		</div>
 
 		<div class="musicshare-field">
 			<label for="song_artist">{L_MUSICSHARE_SONG_ARTIST}</label>
 			<input type="text" id="song_artist" name="song_artist" value="{EDIT_ARTIST}" class="inputbox" />
-			<br /><span class="explain">{L_MUSICSHARE_EDIT_FIELD_EXPLAIN}</span>
+			<span class="explain">{L_MUSICSHARE_EDIT_FIELD_EXPLAIN}</span>
 		</div>
 
 		<div class="musicshare-field">
 			<label for="song_album">{L_MUSICSHARE_SONG_ALBUM}</label>
 			<input type="text" id="song_album" name="song_album" value="{EDIT_ALBUM}" class="inputbox" />
-			<br /><span class="explain">{L_MUSICSHARE_EDIT_FIELD_EXPLAIN}</span>
+			<span class="explain">{L_MUSICSHARE_EDIT_FIELD_EXPLAIN}</span>
 		</div>
 
 		<div class="musicshare-field">
 			<label for="song_year">{L_MUSICSHARE_SONG_YEAR}</label>
 			<input type="number" id="song_year" name="song_year" value="{EDIT_YEAR}" min="0" max="2100" class="inputbox narrow" />
-			<br /><span class="explain">{L_MUSICSHARE_EDIT_FIELD_EXPLAIN}</span>
+			<span class="explain">{L_MUSICSHARE_EDIT_FIELD_EXPLAIN}</span>
 		</div>
 
 		<div class="musicshare-field">
@@ -46,9 +46,42 @@
 			<!-- IF S_DESCRIPTIONS -->
 			<label for="song_description">{L_MUSICSHARE_DESCRIPTION}</label>
 			<textarea id="song_description" name="song_description" rows="3" maxlength="{DESCRIPTION_MAX}">{EDIT_DESCRIPTION}</textarea>
-			<br /><span class="explain">{L_MUSICSHARE_DESCRIPTION_EXPLAIN}</span>
+			<span class="explain">{L_MUSICSHARE_DESCRIPTION_EXPLAIN}</span>
 			<!-- ENDIF -->
 		</div>
+
+		<div class="musicshare-field">
+			<label for="replace_file">{L_MUSICSHARE_REPLACE_FILE}</label>
+			<input type="file" id="replace_file" name="replace_file" />
+			<span class="explain">{L_MUSICSHARE_REPLACE_FILE_EXPLAIN}</span>
+		</div>
+
+		<!-- IF S_SHOW_LICENSE -->
+		<div class="musicshare-field">
+			<label for="song_license">{L_MUSICSHARE_LICENSE}</label>
+			<select id="song_license" name="song_license">
+				<!-- BEGIN licenses -->
+				<option value="{licenses.CODE}"<!-- IF licenses.S_SELECTED --> selected="selected"<!-- ENDIF -->>{licenses.NAME}</option>
+				<!-- END licenses -->
+			</select>
+			<span class="explain">{L_MUSICSHARE_LICENSE_EXPLAIN}</span>
+		</div>
+		<!-- ENDIF -->
+
+		<!-- IF S_SHOW_BPM -->
+		<div class="musicshare-field">
+			<label for="song_bpm">{L_MUSICSHARE_BPM}</label>
+			<input type="number" id="song_bpm" name="song_bpm" value="{EDIT_BPM}" min="0" max="400" class="inputbox narrow" />
+			<span class="explain">{L_MUSICSHARE_BPM_EXPLAIN}</span>
+		</div>
+
+		<div class="musicshare-field">
+			<label for="song_key">{L_MUSICSHARE_KEY}</label>
+			<input type="text" id="song_key" name="song_key" value="{EDIT_KEY}" maxlength="16" size="10" class="inputbox narrow" list="musicshare-keys" autocomplete="off" />
+				<!-- INCLUDE musicshare_keys.html -->
+			<span class="explain">{L_MUSICSHARE_KEY_EXPLAIN}</span>
+		</div>
+		<!-- ENDIF -->
 
 		<div class="musicshare-field">
 			<span class="musicshare-field-label">{L_MUSICSHARE_ALLOW_DOWNLOAD_SONG}</span>

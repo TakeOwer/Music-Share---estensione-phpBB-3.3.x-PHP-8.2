@@ -36,6 +36,13 @@
 				<dd><input type="text" id="song_artist" name="song_artist" class="inputbox" />
 				<br /><span class="explain">{L_MUSICSHARE_ARTIST_EXPLAIN}</span></dd>
 			</dl>
+			<!-- IF S_TOPIC_ENABLED -->
+			<dl>
+				<dt>{L_MUSICSHARE_CREATE_TOPIC}:</dt>
+				<dd><label><input type="checkbox" name="create_topic" value="1" checked="checked" /> {L_MUSICSHARE_CREATE_TOPIC_YES}</label>
+				<br /><span class="explain">{L_MUSICSHARE_CREATE_TOPIC_EXPLAIN}</span></dd>
+			</dl>
+			<!-- ENDIF -->
 			<dl>
 				<dt><label for="song_album">{L_MUSICSHARE_SONG_ALBUM}:</label></dt>
 				<dd><input type="text" id="song_album" name="song_album" class="inputbox" />
@@ -46,6 +53,32 @@
 				<dd><input type="number" id="song_year" name="song_year" min="0" max="2100" class="inputbox narrow" />
 				<br /><span class="explain">{L_MUSICSHARE_TAG_FALLBACK}</span></dd>
 			</dl>
+			<!-- IF S_SHOW_LICENSE -->
+			<dl>
+				<dt><label for="song_license">{L_MUSICSHARE_LICENSE}:</label></dt>
+				<dd>
+					<select id="song_license" name="song_license">
+						<!-- BEGIN licenses -->
+						<option value="{licenses.CODE}"<!-- IF licenses.S_SELECTED --> selected="selected"<!-- ENDIF -->>{licenses.NAME}</option>
+						<!-- END licenses -->
+					</select>
+					<br /><span class="explain">{L_MUSICSHARE_LICENSE_EXPLAIN}</span>
+				</dd>
+			</dl>
+			<!-- ENDIF -->
+			<!-- IF S_SHOW_BPM -->
+			<dl>
+				<dt><label for="song_bpm">{L_MUSICSHARE_BPM}:</label></dt>
+				<dd><input type="number" id="song_bpm" name="song_bpm" value="{EDIT_BPM}" min="0" max="400" class="inputbox narrow" />
+				<br /><span class="explain">{L_MUSICSHARE_BPM_EXPLAIN}</span></dd>
+			</dl>
+			<dl>
+				<dt><label for="song_key">{L_MUSICSHARE_KEY}:</label></dt>
+				<dd><input type="text" id="song_key" name="song_key" value="{EDIT_KEY}" maxlength="16" size="10" class="inputbox narrow" list="musicshare-keys" autocomplete="off" />
+				<!-- INCLUDE musicshare_keys.html -->
+				<br /><span class="explain">{L_MUSICSHARE_KEY_EXPLAIN}</span></dd>
+			</dl>
+			<!-- ENDIF -->
 			<dl>
 				<dt><label for="cover_file">{L_MUSICSHARE_COVER_FILE}:</label></dt>
 				<dd><input type="file" id="cover_file" name="cover_file" accept="image/*" />

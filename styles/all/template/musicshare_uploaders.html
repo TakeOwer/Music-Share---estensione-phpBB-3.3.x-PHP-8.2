@@ -25,7 +25,7 @@
 				<th style="width: 110px;">{L_MUSICSHARE_PROFILE_PLAYS}</th>
 				<th style="width: 90px;">{L_MUSICSHARE_LIKE}</th>
 				<th>{L_MUSICSHARE_LAST_SONG}</th>
-				<th style="width: 130px;"></th>
+				<th>{L_OPTIONS}</th>
 			</tr>
 		</thead>
 		<tbody>
@@ -45,14 +45,20 @@
 					&mdash;
 					<!-- ENDIF -->
 				</td>
-				<td><a href="{uploaders.U_SONGS}" class="musicshare-btn">{L_MUSICSHARE_SEE_SONGS}</a></td>
+				<td class="musicshare-cell-actions">
+					<a href="{uploaders.U_SONGS}" class="musicshare-btn">{L_MUSICSHARE_SEE_SONGS}</a>
+					<!-- IF uploaders.U_CONTACT --><a href="{uploaders.U_CONTACT}" class="musicshare-btn" title="{L_MUSICSHARE_CONTACT}"><i class="icon fa-envelope-o fa-fw" aria-hidden="true"></i></a><!-- ENDIF -->
+					<!-- IF uploaders.U_WALL --><a href="{uploaders.U_WALL}" class="musicshare-btn" title="{L_MUSICSHARE_WALL}"><i class="icon fa-comments-o fa-fw" aria-hidden="true"></i><!-- IF uploaders.WALL_COUNT --> {uploaders.WALL_COUNT}<!-- ENDIF --></a><!-- ENDIF -->
+				</td>
 			</tr>
 			<!-- END uploaders -->
 		</tbody>
 	</table>
 
-	<!-- IF PAGINATION -->
-	<div class="pagination">{PAGINATION}</div>
+	<!-- IF .pagination -->
+	<div class="pagination">
+		<!-- INCLUDE pagination.html -->
+	</div>
 	<!-- ENDIF -->
 	<!-- ELSE -->
 	<p>{L_MUSICSHARE_NO_UPLOADERS}</p>

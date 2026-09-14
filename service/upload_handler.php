@@ -22,6 +22,8 @@ class upload_handler
 	protected $song_repository;
 	protected $notifier;
 	protected $recognizer;
+	protected $topic_creator;
+	protected $license_helper;
 
 	public function __construct(
 		\phpbb\config\config $config,
@@ -31,7 +33,9 @@ class upload_handler
 		metadata_extractor $metadata_extractor,
 		song_repository $song_repository,
 		notifier $notifier = null,
-		recognizer $recognizer = null
+		recognizer $recognizer = null,
+		topic_creator $topic_creator = null,
+		license_helper $license_helper = null
 	)
 	{
 		$this->config = $config;
@@ -42,6 +46,8 @@ class upload_handler
 		$this->song_repository = $song_repository;
 		$this->notifier = $notifier;
 		$this->recognizer = $recognizer;
+		$this->topic_creator = $topic_creator;
+		$this->license_helper = $license_helper;
 	}
 
 	/**
@@ -75,6 +81,128 @@ class upload_handler
 		$max = ($max > 0) ? min(1000, $max) : 300;
 
 		return utf8_substr($text, 0, $max);
+	}
+
+	/**
+	 * Apre l'argomento del brano, senza far fallire il caricamento se
+	 * qualcosa va storto: un problema nell'apertura dell'argomento non
+	 * deve impedire la pubblicazione del brano.
+	 *
+	 * @param int $song_id
+	 * @return void
+	 */
+	protected function maybe_create_topic($song_id)
+	{
+		if ($this->topic_creator === null || !$this->topic_creator->is_enabled())
+		{
+			return;
+		}
+
+		// La spunta nel modulo di caricamento decide: chi non la vuole
+		// puo' comunque aprire l'argomento in seguito, dal pulsante che
+		// compare accanto al brano.
+		if (!$this->request->variable('create_topic', 0))
+		{
+			return;
+		}
+
+		try
+		{
+			$song = $this->song_repository->get_song($song_id);
+
+			// Solo per i brani gia' visibili: aprire un argomento per un
+			// brano in attesa di approvazione porterebbe nel forum un
+			// messaggio con un lettore che non riproduce nulla.
+			if ($song && !empty($song['song_approved']))
+			{
+				$this->topic_creator->create_for_song($song);
+			}
+		}
+		catch (\Exception $e)
+		{
+			// si prosegue: il brano e' comunque in libreria
+		}
+	}
+
+	/**
+	 * Sostituisce il file audio di un brano già in libreria.
+	 *
+	 * Mantiene identificativo, ascolti, voti, generi e discussione: si
+	 * cambia solo il contenuto. Il vecchio file viene rimosso soltanto
+	 * dopo che il nuovo è stato scritto, così un errore a metà non
+	 * lascia il brano senza audio.
+	 *
+	 * @param array $song riga del brano
+	 * @param array $file dati del file caricato
+	 * @return array success, error, fields
+	 */
+	public function replace_file(array $song, array $file, $username = '')
+	{
+		$errore = function ($chiave) {
+			return array('success' => false, 'error' => $chiave, 'fields' => array());
+		};
+
+		if (!$this->has_file($file))
+		{
+			return $errore('MUSICSHARE_UPLOAD_ERR_NO_FILE');
+		}
+
+		$ext = strtolower((string) pathinfo((string) $file['name'], PATHINFO_EXTENSION));
+
+		// l'elenco delle estensioni sta nell'aiutante dello spazio di
+		// archiviazione, non qui: piu' avanti in questo stesso file era
+		// gia' chiamato nel modo giusto
+		if (!in_array($ext, $this->storage_helper->get_allowed_extensions(), true))
+		{
+			return $errore('MUSICSHARE_UPLOAD_ERR_EXT');
+		}
+
+		$max = (int) $this->config['musicshare_max_filesize'];
+
+		if ($max > 0 && (int) $file['size'] > $max)
+		{
+			return $errore('MUSICSHARE_UPLOAD_ERR_SIZE');
+		}
+
+		$user_id = (int) $song['user_id'];
+		$username = ($username !== '') ? $username : 'user';
+
+		$cartella = $this->storage_helper->get_user_dir($user_id, $username);
+		$this->storage_helper->ensure_dir($cartella);
+
+		$nome = $this->storage_helper->random_filename($ext);
+
+		if (!@move_uploaded_file($file['tmp_name'], $cartella . $nome))
+		{
+			return $errore('MUSICSHARE_UPLOAD_ERR_MOVE');
+		}
+
+		$meta = $this->metadata_extractor->extract($cartella . $nome);
+
+		// il vecchio file si rimuove solo ora che il nuovo esiste
+		$vecchio = $this->storage_helper->get_storage_path() . ltrim((string) $song['file_path'], '/');
+
+		if (is_file($vecchio))
+		{
+			@unlink($vecchio);
+		}
+
+		return array(
+			'success'	=> true,
+			'error'		=> '',
+			'fields'	=> array(
+				'file_path'		=> $this->storage_helper->get_user_folder($user_id, $username) . '/' . $nome,
+				'file_size'		=> (int) $file['size'],
+				'file_ext'		=> $ext,
+				'file_hash'		=> (string) md5_file($cartella . $nome),
+				'song_duration'	=> (int) $meta['duration'],
+				// letti dal file, non scelti dall'utente
+				'song_bitrate'		=> (int) $meta['bitrate'],
+				'song_bitrate_mode'	=> (string) $meta['bitrate_mode'],
+				'song_samplerate'	=> (int) $meta['samplerate'],
+				'song_channels'		=> (int) $meta['channels'],
+			),
+		);
 	}
 
 	protected function has_file($file)
@@ -315,6 +443,10 @@ class upload_handler
 			'song_album'	=> (string) $album,
 			'song_year'		=> (int) $year,
 			'song_duration'	=> (int) $meta['duration'],
+			'song_bitrate'		=> (int) $meta['bitrate'],
+			'song_bitrate_mode'	=> (string) $meta['bitrate_mode'],
+			'song_samplerate'	=> (int) $meta['samplerate'],
+			'song_channels'		=> (int) $meta['channels'],
 			'file_path'		=> '',
 			'file_ext'		=> $ext,
 			'file_size'		=> $file_size,
@@ -329,6 +461,13 @@ class upload_handler
 			// scelta dell'utente di vietare il download veniva ignorata.
 			'allow_download'	=> $this->request->variable('allow_download', 0) ? 1 : 0,
 			'song_description'	=> $this->clean_description($this->request->variable('song_description', '', true)),
+			'song_license'		=> $this->license_helper !== null
+				? $this->license_helper->sanitize($this->request->variable('song_license', ''))
+				: '',
+			'song_bpm'			=> max(0, min(400, (int) $this->request->variable('song_bpm', 0))),
+			'song_key'			=> $this->license_helper !== null
+				? $this->license_helper->sanitize_key($this->request->variable('song_key', '', true))
+				: '',
 		);
 
 		$song_id = $this->song_repository->add_song($data, $genre_ids);
@@ -398,6 +537,9 @@ class upload_handler
 		}
 
 		$this->song_repository->update_song($song_id, $update);
+
+		// Argomento di discussione, se l'amministratore lo ha attivato.
+		$this->maybe_create_topic($song_id);
 
 		// La notifica parte solo per i brani già visibili: se è richiesta
 		// l'approvazione, partirà quando il moderatore approva.

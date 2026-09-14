@@ -12,6 +12,16 @@
 	<p><a href="{U_UPLOAD}" class="musicshare-btn musicshare-btn-primary">{L_MUSICSHARE_UPLOAD_TITLE}</a></p>
 	<!-- ENDIF -->
 
+	<!-- IF U_LIKED -->
+	<p>
+		<a href="{U_LIKED}" class="musicshare-btn"><i class="icon fa-thumbs-o-up fa-fw" aria-hidden="true"></i> {L_MUSICSHARE_LIKED}</a>
+		<!-- IF U_FOLLOWING_NEWS -->
+		<a href="{U_FOLLOWING_NEWS}" class="musicshare-btn"><i class="icon fa-bell-o fa-fw" aria-hidden="true"></i> {L_MUSICSHARE_FOLLOWING_NEWS}</a>
+		<a href="{U_FOLLOWS_LIST}" class="musicshare-btn"><i class="icon fa-users fa-fw" aria-hidden="true"></i> {L_MUSICSHARE_FOLLOWS_LIST}</a>
+		<!-- ENDIF -->
+	</p>
+	<!-- ENDIF -->
+
 	<!-- BEGIN categories -->
 	<details class="musicshare-category"<!-- IF categories.S_OPEN --> open<!-- ENDIF -->>
 		<summary class="musicshare-category-summary">
@@ -66,13 +76,17 @@
 				<span class="musicshare-title">{recent_songs.TITLE}</span>
 				<span class="musicshare-artist">{recent_songs.ARTIST}<!-- IF recent_songs.ALBUM --> &mdash; {recent_songs.ALBUM}<!-- ENDIF --></span>
 				<!-- IF recent_songs.S_HAS_UPLOADER -->
-				<span class="musicshare-uploader">{L_MUSICSHARE_UPLOADED_BY} {recent_songs.UPLOADER} &middot; {recent_songs.UPLOAD_DATE}<!-- IF recent_songs.GENRES --> &middot; {recent_songs.GENRES}<!-- ENDIF --></span>
+				<span class="musicshare-uploader">{L_MUSICSHARE_UPLOADED_BY} {recent_songs.UPLOADER} &middot; {recent_songs.UPLOAD_DATE}<!-- IF recent_songs.GENRES --> &middot; {recent_songs.GENRES}<!-- ENDIF --><!-- IF recent_songs.QUALITY --> &middot; {recent_songs.QUALITY}<!-- ENDIF --></span>
 				<!-- IF recent_songs.DESCRIPTION --><span class="musicshare-description">{recent_songs.DESCRIPTION}</span><!-- ENDIF -->
 				<!-- ENDIF -->
 			</span>
 			<span class="musicshare-duration">{recent_songs.DURATION}</span>
 			<span class="musicshare-plays" title="{recent_songs.PLAY_COUNT_TEXT}"><i class="icon fa-headphones fa-fw" aria-hidden="true"></i> {recent_songs.PLAY_COUNT}</span>
+			<span class="musicshare-downloads" title="{L_MUSICSHARE_DOWNLOADS}"><i class="icon fa-download fa-fw" aria-hidden="true"></i> {recent_songs.DOWNLOAD_COUNT}</span>
 			<span class="musicshare-row-actions">
+				<!-- IF recent_songs.U_TOPIC --><a href="{recent_songs.U_TOPIC}" class="musicshare-btn" title="{L_MUSICSHARE_DISCUSS}"><i class="icon fa-comments fa-fw" aria-hidden="true"></i></a><!-- ENDIF -->
+				<!-- IF recent_songs.U_PUBLISH --><a href="{recent_songs.U_PUBLISH}" class="musicshare-btn musicshare-btn-publish" title="{L_MUSICSHARE_PUBLISH_TOPIC}"><i class="icon fa-bullhorn fa-fw" aria-hidden="true"></i></a><!-- ENDIF -->
+				<!-- IF recent_songs.U_CONTACT --><a href="{recent_songs.U_CONTACT}" class="musicshare-btn" title="{L_MUSICSHARE_CONTACT}"><i class="icon fa-envelope-o fa-fw" aria-hidden="true"></i></a><!-- ENDIF -->
 				<!-- IF recent_songs.S_CAN_DOWNLOAD -->
 				<a href="{recent_songs.U_DOWNLOAD}" class="musicshare-btn" title="{L_MUSICSHARE_DOWNLOAD}">&#8681;</a>
 				<!-- ENDIF -->
@@ -84,6 +98,14 @@
 
 	<!-- IF S_HAS_TOP_SONGS -->
 	<h3 class="musicshare-section-title">{L_MUSICSHARE_TOP_SONGS}</h3>
+
+	<!-- IF .top_periods -->
+	<p class="musicshare-top-periods">
+		<!-- BEGIN top_periods -->
+		<a href="{top_periods.U_LINK}" class="musicshare-period<!-- IF top_periods.S_ACTIVE --> musicshare-period-active<!-- ENDIF -->">{top_periods.NAME}</a>
+		<!-- END top_periods -->
+	</p>
+	<!-- ENDIF -->
 	<ul class="musicshare-song-list">
 		<!-- BEGIN top_songs -->
 		<li class="musicshare-song-row"
@@ -108,12 +130,16 @@
 			<span class="musicshare-info">
 				<span class="musicshare-title">{top_songs.TITLE}</span>
 				<span class="musicshare-artist">{top_songs.ARTIST}<!-- IF top_songs.ALBUM --> &mdash; {top_songs.ALBUM}<!-- ENDIF --></span>
-				<span class="musicshare-uploader">{L_MUSICSHARE_UPLOADED_BY} {top_songs.UPLOADER} &middot; {top_songs.UPLOAD_DATE}<!-- IF top_songs.GENRES --> &middot; {top_songs.GENRES}<!-- ENDIF --></span>
+				<span class="musicshare-uploader">{L_MUSICSHARE_UPLOADED_BY} {top_songs.UPLOADER} &middot; {top_songs.UPLOAD_DATE}<!-- IF top_songs.GENRES --> &middot; {top_songs.GENRES}<!-- ENDIF --><!-- IF top_songs.QUALITY --> &middot; {top_songs.QUALITY}<!-- ENDIF --></span>
 				<!-- IF top_songs.DESCRIPTION --><span class="musicshare-description">{top_songs.DESCRIPTION}</span><!-- ENDIF -->
 			</span>
 			<span class="musicshare-duration">{top_songs.DURATION}</span>
 			<span class="musicshare-plays" title="{top_songs.PLAY_COUNT_TEXT}"><i class="icon fa-headphones fa-fw" aria-hidden="true"></i> {top_songs.PLAY_COUNT}</span>
+			<span class="musicshare-downloads" title="{L_MUSICSHARE_DOWNLOADS}"><i class="icon fa-download fa-fw" aria-hidden="true"></i> {top_songs.DOWNLOAD_COUNT}</span>
 			<span class="musicshare-row-actions">
+				<!-- IF top_songs.U_TOPIC --><a href="{top_songs.U_TOPIC}" class="musicshare-btn" title="{L_MUSICSHARE_DISCUSS}"><i class="icon fa-comments fa-fw" aria-hidden="true"></i></a><!-- ENDIF -->
+				<!-- IF top_songs.U_PUBLISH --><a href="{top_songs.U_PUBLISH}" class="musicshare-btn musicshare-btn-publish" title="{L_MUSICSHARE_PUBLISH_TOPIC}"><i class="icon fa-bullhorn fa-fw" aria-hidden="true"></i></a><!-- ENDIF -->
+				<!-- IF top_songs.U_CONTACT --><a href="{top_songs.U_CONTACT}" class="musicshare-btn" title="{L_MUSICSHARE_CONTACT}"><i class="icon fa-envelope-o fa-fw" aria-hidden="true"></i></a><!-- ENDIF -->
 				<!-- IF top_songs.S_CAN_DOWNLOAD -->
 				<a href="{top_songs.U_DOWNLOAD}" class="musicshare-btn" title="{L_MUSICSHARE_DOWNLOAD}">&#8681;</a>
 				<!-- ENDIF -->

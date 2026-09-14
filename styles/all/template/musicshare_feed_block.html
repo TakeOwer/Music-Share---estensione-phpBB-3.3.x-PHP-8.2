@@ -29,14 +29,18 @@
 			<span class="musicshare-info">
 				<span class="musicshare-title">{musicshare_feed.TITLE}</span>
 				<span class="musicshare-artist">{musicshare_feed.ARTIST}<!-- IF musicshare_feed.ALBUM --> &mdash; {musicshare_feed.ALBUM}<!-- ENDIF --></span>
-				<span class="musicshare-uploader">{L_MUSICSHARE_UPLOADED_BY} {musicshare_feed.UPLOADER} &middot; {musicshare_feed.UPLOAD_DATE}</span>
+				<span class="musicshare-uploader">{L_MUSICSHARE_UPLOADED_BY} {musicshare_feed.UPLOADER} &middot; {musicshare_feed.UPLOAD_DATE}<!-- IF musicshare_feed.QUALITY --> &middot; {musicshare_feed.QUALITY}<!-- ENDIF --></span>
 			<!-- IF musicshare_feed.DESCRIPTION --><span class="musicshare-description">{musicshare_feed.DESCRIPTION}</span><!-- ENDIF -->
 			</span>
 			<span class="musicshare-duration">{musicshare_feed.DURATION}</span>
 			<span class="musicshare-plays" title="{musicshare_feed.PLAY_COUNT_TEXT}"><i class="icon fa-headphones fa-fw" aria-hidden="true"></i> {musicshare_feed.PLAY_COUNT}</span>
+			<span class="musicshare-downloads" title="{L_MUSICSHARE_DOWNLOADS}"><i class="icon fa-download fa-fw" aria-hidden="true"></i> {musicshare_feed.DOWNLOAD_COUNT}</span>
 			<span class="musicshare-row-actions">
+				<!-- IF musicshare_feed.U_TOPIC --><a href="{musicshare_feed.U_TOPIC}" class="musicshare-btn" title="{L_MUSICSHARE_DISCUSS}"><i class="icon fa-comments fa-fw" aria-hidden="true"></i></a><!-- ENDIF -->
+				<!-- IF musicshare_feed.U_PUBLISH --><a href="{musicshare_feed.U_PUBLISH}" class="musicshare-btn musicshare-btn-publish" title="{L_MUSICSHARE_PUBLISH_TOPIC}"><i class="icon fa-bullhorn fa-fw" aria-hidden="true"></i></a><!-- ENDIF -->
+				<!-- IF musicshare_feed.U_CONTACT --><a href="{musicshare_feed.U_CONTACT}" class="musicshare-btn" title="{L_MUSICSHARE_CONTACT}"><i class="icon fa-envelope-o fa-fw" aria-hidden="true"></i></a><!-- ENDIF -->
 				<!-- IF musicshare_feed.S_CAN_DOWNLOAD -->
-				<a href="{musicshare_feed.U_DOWNLOAD}" class="musicshare-btn" title="{L_MUSICSHARE_DOWNLOAD}">&#8681;</a>
+			<a href="{musicshare_feed.U_DOWNLOAD}" class="musicshare-btn" title="{L_MUSICSHARE_DOWNLOAD}">&#8681;</a>
 				<!-- ENDIF -->
 			</span>
 		</li>
