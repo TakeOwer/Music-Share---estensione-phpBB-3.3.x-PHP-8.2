@@ -1,166 +1,480 @@
-# Music Share — estensione phpBB 3.3.x / PHP 8.2
+# 🎵 Music Share
 
-Versione corrente: **1.24.21** (il numero si aggiorna nel campo `version` di `composer.json`).
+![version](https://img.shields.io/badge/version-1.24.21-blue)
+![phpBB](https://img.shields.io/badge/phpBB-3.3.0%2B-green)
+![PHP](https://img.shields.io/badge/PHP-7.4%2B-777bb4)
+![license](https://img.shields.io/badge/license-GPL--2.0--only-lightgrey)
+![languages](https://img.shields.io/badge/languages-2-orange)
 
-Estensione in stile Spotify: upload brani (UCP + sezione forum dedicata),
-sfoglia per genere, playlist personali, player globale con copertina,
-tag, waveform e barra di avanzamento.
+**A music library inside your board — not a separate site bolted onto it.**
 
-## Stato: completa e funzionante ✅
+Members upload their own tracks, browse them by genre, build playlists and
+listen while they keep reading the forum. Every track can have its own
+discussion topic, and every author has a page where the community can write
+to them. The player follows you from page to page and never stops.
 
-Tutte le parti concordate sono state implementate:
+---
 
-- **Database**: tabelle generi, brani, relazione brano-genere, playlist,
-  relazione playlist-brano (`migrations/install_schema.php`)
-- **ACL**: `u_musicshare_upload`, `u_musicshare_playlist`,
-  `m_musicshare_manage` (categoria dedicata, assegnati di default ai
-  REGISTERED — modificabile da ACP → Permessi)
-- **Config**: percorso storage, estensioni ammesse, dimensione massima
-  file, spazio massimo utente, waveform on/off, brani per pagina,
-  moderazione on/off
-- **ACP** (`acp/`): gestione generi (CRUD) + impostazioni, con verifica
-  automatica della scrivibilità della cartella di storage
-- **Upload + metadati** (`service/upload_handler.php`,
-  `service/metadata_extractor.php`): estrazione titolo/artista/album/anno
-  e copertina incorporata via `getid3`, validazione mime reale,
-  quota per utente, cartelle per utente (`<storage>/<user_id>/...`)
-- **UCP** (`ucp/`): "I miei brani" (modifica/elimina), "Carica brano",
-  "Le mie playlist" (crea/modifica/elimina, gestisci brani contenuti)
-- **Pagine pubbliche** (`controller/main.php`): sfoglia per genere,
-  vista playlist pubblica, form di upload lato forum
-- **Streaming** (`controller/stream.php`): file audio serviti con
-  supporto `Range`/`Content-Range` (seek su file grandi) e copertine
-- **Player globale persistente** (`styles/all/template/musicshare_player.html`
-  + `musicshare.js`): iniettato in ogni pagina via template event,
-  play/pausa/stop/avanti/indietro, **coda di riproduzione visibile e
-  riordinabile** (pulsanti su/giù, rimozione, salto diretto a un brano),
-  barra di avanzamento con seek, volume, marquee per titolo/artista
-  lunghi, forma d'onda disegnata lato client via Web Audio API,
-  **dissolvenza leggera** tra un brano e il successivo, **pulsante per
-  ridurre il player a barra sottile**
-- **Menu "Aggiungi a playlist"** a comparsa (sostituisce il prompt()
-  iniziale): elenca le playlist dell'utente via AJAX e permette anche
-  di crearne una nuova al volo; protetto da un hash anti-CSRF di sessione
-  (`generate_link_hash`/`check_link_hash`)
-- **Moderazione in ACP**: nuova scheda "Moderazione" con l'elenco dei
-  brani in attesa di approvazione (quando `musicshare_require_approval`
-  è attivo), con azioni Approva / Rifiuta ed elimina
-- **Ricerca** (`/musicshare/search`) per titolo, artista o album, con
-  paginazione
-- **"I più ascoltati"**: sezione nella pagina Sfoglia con i 10 brani
-  con più riproduzioni
-- Lingue complete it/en (front-end, ACP, UCP, permessi)
+## ✨ What it does
 
-## Nota tecnica sulla waveform
+|  | |
+|---|---|
+| 🎧 | **Continuous player** that survives page changes — cover art, scrolling tags, progress bar, queue |
+| 📀 | **Library by genre and category**, with genres created from the ACP |
+| 📝 | **Personal playlists**, reorderable, built from any list with one click |
+| 👍 | **Likes and dislikes** on every track, one vote per person, revocable |
+| ❤️ | **Favourites page** collecting everything you liked |
+| 💬 | **Author wall** — comments and replies on each author's page, with 👍 👎 ❤️ reactions |
+| 🔔 | **Follow an author** and get notified when they publish, plus a "what's new" page |
+| 🗣️ | **Discussion topic per track**, opened in the forum section you choose |
+| 📎 | **Automatic import** of audio attachments from the forum sections you pick |
+| 🔍 | **Track recognition** via AudD and ACRCloud, to spot copyrighted uploads |
+| 📊 | **Charts by period** — last 7 days, last 30 days, all time |
+| 🧩 | **BBCode `[musicshare]12[/musicshare]`** embeds a full player inside any post |
+| 🏠 | **Index block** with the latest uploads, scrollable and cached |
+| 🛡️ | **Moderation queue** in the ACP and in the Moderator Control Panel |
+| 🔧 | **Diagnostics and repair tools** for counters and dangling references |
+| 🌍 | **Italian and English**, complete on both sides |
 
-Genera i picchi audio **lato client** (Web Audio API + `<canvas>`) al
-momento della riproduzione, invece che precalcolarli lato server
-all'upload: evita una dipendenza da `ffmpeg` (non garantita su ogni
-hosting) e funziona per qualsiasi formato che il browser sappia
-decodificare. Il rovescio della medaglia è un breve calcolo alla prima
-riproduzione di un brano (impercettibile per file di pochi MB). Se in
-futuro vuoi il precalcolo server-side, si può aggiungere quando è
-garantita la presenza di `ffmpeg`/`ffprobe` sul server.
+---
 
-## Installazione
+## 📥 Installation
 
-1. Estrai lo zip dentro `ext/` del forum, così da ottenere
-   `ext/salvocortesiano/musicshare/`
-2. Nella cartella dell'estensione esegui `composer install --no-dev`
-   (serve a scaricare `james-heinrich/getid3`, usato per leggere i tag
-   audio); in alternativa richiedi il pacchetto dal composer.json della
-   root del forum, se lo gestisci già così
-3. Da ACP → Gestione estensioni, abilita "Music Share": crea
-   automaticamente le tabelle, i permessi e i moduli ACP/UCP
-4. Da ACP → Music Share → Impostazioni, verifica che la cartella di
-   storage sia scrivibile e configura formati/limiti a piacere
-5. Da ACP → Music Share → Generi, crea i generi musicali
-6. Da ACP → Permessi, assegna `u_musicshare_upload` ai gruppi che
-   vuoi abilitare all'upload (di default è già assegnato ai REGISTERED)
+1. Copy the `musicshare` folder to `ext/salvocortesiano/` on your board.
+   The final path must be `ext/salvocortesiano/musicshare/`.
+2. Go to **ACP → Customise → Manage extensions**.
+3. Click **Enable** next to Music Share.
+4. Empty the board cache (**ACP → General → Purge the cache**).
 
-## Possibili migliorie future (non incluse)
+### Updating
 
-- Coda riordinabile tramite trascinamento (drag&drop) invece dei soli
-  pulsanti su/giù (già presenti e funzionanti)
-- Crossfade vero e proprio tra brani sovrapposti (ora c'è una
-  dissolvenza in uscita sul brano corrente prima di caricare il
-  successivo, non una sovrapposizione)
-- Player minimizzato/espanso più rifinito graficamente
+1. Replace the `ext/salvocortesiano/musicshare/` folder with the new one.
+2. Go to **ACP → Customise → Manage extensions**: if an update is pending,
+   phpBB offers it. Run it — new versions often add database tables.
+3. **Empty the cache.** Without this, migrations do not run and templates
+   stay as they were compiled before.
 
-## Note tecniche
+> ⚠️ Always update from the extension page, never by only replacing files.
+> A skipped migration means a missing table, and the feature it belongs to
+> simply never appears — with no error message.
 
-- Formati audio previsti: mp3, ogg/oga, flac, wav, m4a, aac
-- Storage: `<storage_path>/<user_id>/<song_id>.<ext>` e
-  `.../<user_id>/covers/<song_id>.jpg`, percorso configurabile da ACP
-- Crediti inclusi nell'estensione: Salvo Cortesiano —
-  https://netshadows.de — info@netshadows.de
+---
 
-## Aggiunte successive
+## ⚙️ First setup
 
-- **Protezione dello storage**: creazione automatica di `.htaccess` e
-  `index.html` nella cartella dei brani, con avviso in ACP se la cartella
-  risulta raggiungibile dal web
-- **Moderazione completa**: la scheda Moderazione elenca sia i brani in
-  attesa sia **tutti** i brani, con ricerca, paginazione, approva/revoca
-  ed elimina. Il permesso `m_musicshare_manage` è ora realmente usato:
-  chi lo possiede vede il pulsante di eliminazione anche nelle liste
-  pubbliche, senza bisogno di accedere all'ACP
-- **Anti-duplicati** tramite impronta MD5 del file (attivabile da ACP)
-- **Media Session API**: brano, copertina e controlli play/pausa/avanti
-  compaiono nella schermata di blocco del telefono
-- **Riproduzione casuale e ripeti** (coda intera o brano singolo), con
-  lo stato conservato tra le pagine
-- **Filtro per genere** nella ricerca, con i generi raggruppati per categoria
-- **Barra della quota** in "I miei brani", che diventa arancione oltre il 90%
-- **Download opzionale** del file originale, attivabile da ACP
-- **Gruppi autorizzati**: scheda ACP per assegnare rapidamente ai gruppi
-  i permessi di caricamento e di creazione playlist
-- **Copertina modificabile** dalla pagina di modifica brano, con anteprima
-  e possibilità di rimuoverla
-- **Continuità del player** tra le pagine del forum (opzione ACP)
+Everything lives in **ACP → Extensions → Music Share**. The settings page is
+split into eleven groups; these are the ones you cannot skip.
 
-## Non implementato
+### 1. Storage and uploads
 
-- BBCode per incorporare un brano dentro un messaggio del forum
-- Riproduzione realmente ininterrotta durante la navigazione (richiederebbe
-  di trasformare il forum in una single page app)
+| Setting | What to do |
+|---|---|
+| Storage folder | A writable folder, outside the extension if you can — an extension update must never wipe the library |
+| Allowed formats | `mp3, ogg, oga, flac, wav, m4a, aac` by default |
+| Maximum file size | Keep it below your PHP `upload_max_filesize` |
+| Space per user | `0` for no limit |
 
+### 2. Permissions
 
-## Riconoscimento dei brani (facoltativo)
+Nothing works until you grant them. **ACP → Permissions → Groups**, Music
+Share category:
 
-L'estensione puo' confrontare i brani caricati con un archivio di
-pubblicazioni commerciali, per aiutare la moderazione. Il controllo e'
-disattivato per impostazione predefinita.
+| Permission | Give it to |
+|---|---|
+| `u_musicshare_view` | Everyone who may reach the music section |
+| `u_musicshare_upload` | Whoever may upload |
+| `u_musicshare_playlist` | Whoever may build playlists |
+| `u_musicshare_feed` | Whoever sees the index block |
+| `u_musicshare_notify` | ⚠️ **Not to Registered Users** — see below |
+| `u_musicshare_wall_post` | Whoever may write on author walls |
+| `u_musicshare_wall_edit` | Whoever may edit and delete their own comments |
+| `m_musicshare_wall` | Staff who moderate everyone's comments |
+| `m_musicshare_manage` | Staff who manage every track |
 
-**Cosa fa e cosa non fa.** I servizi usati non stabiliscono se un brano
-sia protetto dal diritto d'autore: dicono se l'audio corrisponde a una
-pubblicazione presente nei loro archivi. Una corrispondenza e' un indizio
-forte che il file non sia opera dell'utente, ma puo' essere un falso
-positivo, perche' molta musica royalty free e' registrata negli stessi
-archivi. L'assenza di corrispondenza non significa che il brano sia
-libero. E' un aiuto alla moderazione, non una verifica legale.
+> ⚠️ **`u_musicshare_notify` on a large board.** This permission sends a
+> notification to every holder on every upload. On a board with 20,000
+> members, one track means 20,000 notification rows. Grant it to staff only
+> and let everyone else use **Follow**, which notifies only those who asked.
 
-### AudD
+### 3. Genres
 
-1. Registrarsi su https://dashboard.audd.io/
-2. Il token API compare nella pagina principale del pannello
-3. Incollarlo in ACP -> Music Share -> Riconoscimento brani
-4. Documentazione: https://docs.audd.io/
+**ACP → Music Share → Genres.** Nothing can be uploaded before at least one
+genre exists. A ready 79-genre list can be loaded with one click.
 
-### ACRCloud
+---
 
-1. Registrarsi su https://console.acrcloud.com/signup
-2. Creare un progetto di tipo *Audio & Video Recognition*, scegliendo la
-   regione piu' vicina (per l'Europa: eu-west-1)
-3. Copiare host, access key e access secret nella scheda ACP
-4. L'host va scritto senza "https://" davanti
+## 👤 How members use it
 
-### Dopo la configurazione
+### Uploading a track
 
-Nella scheda ACP si sceglie il servizio, si verifica la chiave con
-l'apposito pulsante e si spuntano i gruppi i cui caricamenti vanno
-controllati. **Senza almeno un gruppo selezionato il controllo non parte
-mai**, per non consumare richieste a sorpresa.
+From **Music Share → Upload**, or from **UCP → Music Share → Upload**.
 
-Ogni brano caricato da un utente di un gruppo controllato consuma una
-richiesta, anche quando non risulta alcuna corrispondenza.
+Title, artist, album, year and cover art are **read from the file tags**, so
+the fields can be left empty. The same goes for bitrate, VBR/CBR/ABR mode,
+sample rate and channels: they are read from the file and never typed in.
+
+What is worth filling in by hand:
+
+- **Genres** — one or more, this is how people will find the track
+- **Description** — two lines on where it comes from and why you are sharing it
+- **Licence** — what you allow others to do with it
+- **BPM and key** — for anyone who wants to mix it or play along;
+  the key field offers the 24 common keys, or you can type your own
+- **Open a topic for this track** — ticked by default
+
+### Listening
+
+Click any row. The player appears at the bottom and **keeps playing while you
+browse the forum**. The queue is the list you clicked from, so clicking a
+track in a genre page queues that genre.
+
+### Playlists
+
+The `+` button on every row adds a track to a playlist, or creates a new one
+on the spot. Playlists live in **UCP → Music Share**.
+
+### Following an author
+
+The **Follow** button on an author's page. You will be notified of their new
+tracks even if general notifications are off for you, and their uploads show
+up under **News from those you follow**.
+
+### The author wall
+
+At the bottom of every author page. Comments stay on that page — they are not
+forum posts. You can reply to someone else's comment, edit and delete your
+own, and react with 👍 👎 ❤️.
+
+Likes and dislikes are mutually exclusive; the heart is independent. You
+cannot react to your own comment, and you cannot reply to yourself.
+
+### Embedding a track in a post
+
+`[musicshare]12[/musicshare]` where `12` is the track id. **UCP → My tracks**
+has a button that copies the ready-made code. Permissions are checked when
+the post is read, so a removed or unapproved track simply does not play.
+
+---
+
+## 🛠️ Admin panel
+
+| Tab | What it is for |
+|---|---|
+| **Settings** | 54 options in eleven groups |
+| **Genres** | Create genres and categories, or load the 79-genre list |
+| **Groups** | Which groups may upload, listen, use playlists |
+| **Moderation** | Approve, reject, edit or delete any track; bulk actions |
+| **Recognition** | AudD and ACRCloud keys, and which groups get checked |
+| **Maintenance** | Seven-section health check of the installation |
+| **Tools** | Overview figures, counter repair, dangling reference cleanup |
+
+### Tools worth knowing
+
+- **Recalculate likes / downloads** — rebuilds the counters from the source
+  tables. `0` is good news: it means nothing is out of step.
+- **Re-read audio technical data** — fills bitrate, mode, sample rate and
+  channels for tracks uploaded before version 1.24.19. It runs 25 tracks at a
+  time; press it until the number reaches zero.
+- **Remove orphan files** — deletes files on disk that no track claims.
+
+> 📌 **Plays are never recalculated, and this is deliberate.** The dated log
+> is pruned on a schedule because it only serves the period charts.
+> Recalculating the total from it would zero everything older than the
+> retention window. An imperfect counter beats a deleted history.
+
+---
+
+## 🔔 Notifications
+
+Five types, all switchable by each member under **UCP → Board preferences →
+Notifications**, in the Music Share group:
+
+| Notification | Who gets it |
+|---|---|
+| New track uploaded | Holders of `u_musicshare_notify`, plus followers of that author |
+| Track approved | The author |
+| Track rejected | The author |
+| Comment on your wall | The page owner |
+| Reply to your comment | Whoever wrote the comment |
+
+---
+
+## 🧯 Troubleshooting
+
+**A feature does not appear at all, with no error.**
+A migration has not run. Go to ACP → Manage extensions and complete the
+update, then purge the cache.
+
+**Uploads fail on large files.**
+The board setting is not the only limit. Check `upload_max_filesize`,
+`post_max_size` and `max_execution_time` in PHP. The Maintenance tab shows
+all three.
+
+**The index block shows stale figures.**
+It is cached on purpose. Voting and moderation clear it automatically;
+purging the board cache always works.
+
+**Imported tracks are audible to people who cannot read the source forum.**
+This is expected and the ACP warns about it: the library has a single
+permission of its own, forum permissions do not follow the track into it.
+Only import from sections whose audience matches the music section's.
+
+---
+
+## 📄 Licence and credits
+
+Released under **GPL-2.0-only**.
+
+Developed by [Salvo Cortesiano](https://netshadows.de) — info@netshadows.de
+
+Bundled third-party code: [getID3](https://github.com/JamesHeinrich/getID3)
+for reading audio tags, under its own licence.
+
+Track recognition uses [AudD](https://audd.io) and
+[ACRCloud](https://www.acrcloud.com); both need an account of your own and
+are off by default.
+
+# 🎵 Music Share
+
+![versione](https://img.shields.io/badge/versione-1.24.21-blue)
+![phpBB](https://img.shields.io/badge/phpBB-3.3.0%2B-green)
+![PHP](https://img.shields.io/badge/PHP-7.4%2B-777bb4)
+![licenza](https://img.shields.io/badge/licenza-GPL--2.0--only-lightgrey)
+![lingue](https://img.shields.io/badge/lingue-2-orange)
+
+**Una libreria musicale dentro il forum, non un sito a parte appoggiato sopra.**
+
+Gli utenti caricano i propri brani, li sfogliano per genere, si costruiscono
+playlist e ascoltano mentre continuano a leggere il forum. Ogni brano può
+avere il suo argomento di discussione, e ogni autore ha una pagina dove la
+community può scrivergli. Il lettore ti segue di pagina in pagina e non si
+ferma.
+
+🇬🇧 [Read in English](README.md)
+
+---
+
+## ✨ Cosa fa
+
+|  | |
+|---|---|
+| 🎧 | **Lettore continuo** che sopravvive al cambio pagina — copertina, tag scorrevoli, barra di avanzamento, coda |
+| 📀 | **Libreria per genere e categoria**, con i generi creati dall'ACP |
+| 📝 | **Playlist personali**, riordinabili, create da qualunque elenco con un clic |
+| 👍 | **Mi piace e non mi piace** su ogni brano, un voto a testa, revocabile |
+| ❤️ | **Pagina dei preferiti** con tutto quello a cui hai messo mi piace |
+| 💬 | **Bacheca dell'autore** — commenti e risposte sulla sua pagina, con reazioni 👍 👎 ❤️ |
+| 🔔 | **Segui un autore** e ricevi l'avviso quando pubblica, più la pagina delle novità |
+| 🗣️ | **Argomento di discussione per brano**, aperto nella sezione che scegli |
+| 📎 | **Importazione automatica** degli allegati audio dalle sezioni che indichi |
+| 🔍 | **Riconoscimento dei brani** con AudD e ACRCloud, per intercettare materiale protetto |
+| 📊 | **Classifiche per periodo** — ultimi 7 giorni, ultimi 30 giorni, sempre |
+| 🧩 | **BBCode `[musicshare]12[/musicshare]`** che inserisce un lettore completo dentro un messaggio |
+| 🏠 | **Riquadro nell'indice** con gli ultimi caricamenti, scorrevole e tenuto in cache |
+| 🛡️ | **Coda di moderazione** in ACP e nel Pannello di Controllo Moderatore |
+| 🔧 | **Diagnosi e strumenti di riparazione** per contatori e riferimenti rimasti appesi |
+| 🌍 | **Italiano e inglese**, completi da entrambe le parti |
+
+---
+
+## 📥 Installazione
+
+1. Copia la cartella `musicshare` dentro `ext/salvocortesiano/` del forum.
+   Il percorso finale deve essere `ext/salvocortesiano/musicshare/`.
+2. Vai in **ACP → Personalizza → Gestisci estensioni**.
+3. Clicca **Attiva** accanto a Music Share.
+4. Svuota la cache (**ACP → Generale → Svuota la cache**).
+
+### Aggiornamento
+
+1. Sostituisci la cartella `ext/salvocortesiano/musicshare/` con quella nuova.
+2. Vai in **ACP → Personalizza → Gestisci estensioni**: se c'è un
+   aggiornamento in sospeso, phpBB te lo propone. Eseguilo — le versioni
+   nuove aggiungono spesso tabelle al database.
+3. **Svuota la cache.** Senza, le migrazioni non partono e i template
+   restano quelli compilati prima.
+
+> ⚠️ Aggiorna sempre dalla pagina delle estensioni, mai sostituendo soltanto
+> i file. Una migrazione saltata significa una tabella mancante, e la
+> funzione a cui appartiene semplicemente non compare — senza nessun errore.
+
+---
+
+## ⚙️ Prima configurazione
+
+Tutto sta in **ACP → Estensioni → Music Share**. La pagina delle impostazioni
+è divisa in undici gruppi; questi sono quelli che non puoi saltare.
+
+### 1. Archiviazione e caricamento
+
+| Impostazione | Cosa fare |
+|---|---|
+| Cartella di archiviazione | Una cartella scrivibile, possibilmente fuori dall'estensione: un aggiornamento non deve mai cancellare la libreria |
+| Formati consentiti | `mp3, ogg, oga, flac, wav, m4a, aac` di partenza |
+| Dimensione massima del file | Tienila sotto `upload_max_filesize` di PHP |
+| Spazio per utente | `0` per nessun limite |
+
+### 2. Permessi
+
+Finché non li concedi non funziona niente. **ACP → Permessi → Gruppi**,
+categoria Music Share:
+
+| Permesso | A chi darlo |
+|---|---|
+| `u_musicshare_view` | Tutti quelli che possono entrare nella sezione musica |
+| `u_musicshare_upload` | Chi può caricare |
+| `u_musicshare_playlist` | Chi può crearsi playlist |
+| `u_musicshare_feed` | Chi vede il riquadro nell'indice |
+| `u_musicshare_notify` | ⚠️ **Non a Utenti Registrati** — vedi sotto |
+| `u_musicshare_wall_post` | Chi può scrivere sulle bacheche |
+| `u_musicshare_wall_edit` | Chi può modificare ed eliminare i propri commenti |
+| `m_musicshare_wall` | Lo staff che modera i commenti di tutti |
+| `m_musicshare_manage` | Lo staff che gestisce tutti i brani |
+
+> ⚠️ **`u_musicshare_notify` su un forum grande.** Questo permesso manda una
+> notifica a ogni suo titolare a ogni caricamento. Su un forum da 20.000
+> iscritti, un brano significa 20.000 righe di notifica. Concedilo solo allo
+> staff e lascia che gli altri usino **Segui**, che avvisa solo chi lo ha
+> chiesto.
+
+### 3. Generi
+
+**ACP → Music Share → Generi.** Non si può caricare niente prima che esista
+almeno un genere. Un elenco pronto di 79 generi si carica con un clic.
+
+---
+
+## 👤 Come si usa
+
+### Caricare un brano
+
+Da **Music Share → Carica**, oppure da **PCM → Music Share → Carica**.
+
+Titolo, artista, album, anno e copertina vengono **letti dai tag del file**,
+quindi i campi si possono lasciare vuoti. Lo stesso vale per bitrate,
+modalità VBR/CBR/ABR, frequenza e canali: si leggono dal file e non si
+digitano mai.
+
+Quello che conviene riempire a mano:
+
+- **Generi** — uno o più, è così che la gente troverà il brano
+- **Descrizione** — due righe su da dove viene e perché lo condividi
+- **Licenza** — cosa consenti a chi vuole usarlo
+- **BPM e tonalità** — servono a chi vuole mixarlo o suonarci sopra; il campo
+  della tonalità propone le 24 più comuni, oppure puoi scriverla tu
+- **Apri un argomento per questo brano** — spuntato di partenza
+
+### Ascoltare
+
+Clicca una riga qualsiasi. Il lettore compare in basso e **continua a suonare
+mentre giri per il forum**. La coda è l'elenco da cui hai cliccato: se parti
+dalla pagina di un genere, in coda ci finisce quel genere.
+
+### Playlist
+
+Il pulsante `+` su ogni riga aggiunge il brano a una playlist, o ne crea una
+al volo. Le playlist stanno in **PCM → Music Share**.
+
+### Seguire un autore
+
+Il pulsante **Segui** sulla sua pagina. Riceverai l'avviso dei suoi brani
+nuovi anche se le notifiche generali non sono attive per te, e i suoi
+caricamenti compaiono sotto **Novità da chi segui**.
+
+### La bacheca
+
+In fondo alla pagina di ogni autore. I commenti restano lì: non sono messaggi
+del forum. Puoi rispondere al commento di un altro, modificare ed eliminare i
+tuoi, e reagire con 👍 👎 ❤️.
+
+Mi piace e non mi piace si escludono a vicenda, il cuore è indipendente. Non
+puoi reagire a un commento tuo, e non puoi rispondere a te stesso.
+
+### Inserire un brano in un messaggio
+
+`[musicshare]12[/musicshare]` dove `12` è il numero del brano. In
+**PCM → I miei brani** c'è un pulsante che copia il codice già pronto. I
+permessi vengono verificati alla lettura del messaggio, quindi un brano
+rimosso o non approvato semplicemente non viene riprodotto.
+
+---
+
+## 🛠️ Pannello di amministrazione
+
+| Scheda | A cosa serve |
+|---|---|
+| **Impostazioni** | 54 opzioni divise in undici gruppi |
+| **Generi** | Creare generi e categorie, o caricare l'elenco dei 79 |
+| **Gruppi** | Quali gruppi possono caricare, ascoltare, usare le playlist |
+| **Moderazione** | Approvare, rifiutare, modificare o eliminare qualunque brano; azioni multiple |
+| **Riconoscimento** | Chiavi AudD e ACRCloud, e quali gruppi vengono controllati |
+| **Manutenzione** | Controllo dell'installazione in sette sezioni |
+| **Strumenti** | Quadro d'insieme, riparazione contatori, pulizia riferimenti appesi |
+
+### Strumenti da conoscere
+
+- **Ricalcola mi piace / download** — rifà i contatori leggendo le tabelle
+  originali. `0` è una buona notizia: vuol dire che non c'è niente di scollato.
+- **Rileggi i dati tecnici dell'audio** — riempie bitrate, modalità,
+  frequenza e canali per i brani caricati prima della versione 1.24.19.
+  Lavora 25 brani per volta: premi finché il numero non arriva a zero.
+- **Rimuovi i file orfani** — cancella dal disco i file che nessun brano
+  rivendica.
+
+> 📌 **Gli ascolti non si ricalcolano, ed è voluto.** Il registro datato viene
+> sfoltito periodicamente perché serve solo alle classifiche per periodo.
+> Ricalcolare il totale da lì azzererebbe tutto ciò che è più vecchio della
+> finestra conservata. Meglio un contatore imperfetto che una cancellazione
+> della storia.
+
+---
+
+## 🔔 Notifiche
+
+Cinque tipi, tutti disattivabili da ciascun utente in **PCM → Preferenze →
+Notifiche**, nel gruppo Music Share:
+
+| Notifica | A chi arriva |
+|---|---|
+| Nuovo brano caricato | A chi ha `u_musicshare_notify`, più a chi segue quell'autore |
+| Brano approvato | All'autore |
+| Brano rifiutato | All'autore |
+| Commento sulla tua bacheca | Al padrone della pagina |
+| Risposta a un tuo commento | A chi aveva scritto il commento |
+
+---
+
+## 🧯 Se qualcosa non va
+
+**Una funzione non compare proprio, e non dà errore.**
+Una migrazione non è partita. Vai in ACP → Gestisci estensioni, completa
+l'aggiornamento, poi svuota la cache.
+
+**I caricamenti falliscono sui file grandi.**
+Il limite dell'estensione non è l'unico. Controlla `upload_max_filesize`,
+`post_max_size` e `max_execution_time` di PHP. La scheda Manutenzione te li
+mostra tutti e tre.
+
+**Il riquadro nell'indice mostra numeri vecchi.**
+È tenuto in cache di proposito. Voti e moderazione la svuotano da soli;
+svuotare la cache del forum funziona sempre.
+
+**I brani importati si sentono anche da chi non può leggere la sezione di origine.**
+È previsto, e l'ACP lo avvisa: la libreria ha un permesso suo unico, i
+permessi delle sezioni non seguono il brano dentro di essa. Importa solo da
+sezioni il cui pubblico coincide con quello della sezione musica.
+
+---
+
+## 📄 Licenza e crediti
+
+Distribuita con licenza **GPL-2.0-only**.
+
+Sviluppata da [Salvo Cortesiano](https://netshadows.de) — info@netshadows.de
+
+Codice di terze parti incluso: [getID3](https://github.com/JamesHeinrich/getID3)
+per la lettura dei tag audio, con la sua licenza.
+
+Il riconoscimento dei brani usa [AudD](https://audd.io) e
+[ACRCloud](https://www.acrcloud.com); entrambi richiedono un account tuo e
+sono disattivati di partenza.
